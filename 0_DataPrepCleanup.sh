@@ -53,11 +53,12 @@ echo Current Working Directory
 echo ----------------------------------------------
 echo $PWD
 
-#Get data directory
-read -p "Location for PLINK bim file": 
+#Get central data directory
+echo -n "Central directory for data files":  
+read -p MAIN
 
 #Get the BaseName of the Data -- must have a Plink .bim file in the folder
-RawData="$(ls $REPLY/*.bim | awk -F/ '{print $NF}' | awk -F'.' '{print $1}')"
+RawData="$(ls $REPLY/oddyssey_data*/*.bim | awk -F/ '{print $NF}' | awk -F'.' '{print $1}')"
 
 # Controls whether BCFTools +Fixref is performed on the dataset
 
@@ -150,7 +151,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		bcftools +fixref ./TEMP/DataFixStep1_${RawData}.bcf -Ob -o ./TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -d -f ./RefAnnotationData/human_g1k_v37.fasta.gz -i ./0_DataPrepModule/RefAnnotationData/All_20170710.vcf.gz
+		bcftools +fixref ./TEMP/DataFixStep1_${RawData}.bcf -Ob -o ./TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -d -f ./RefAnnotationData/human_g1k_v37.fasta.gz -i ./RefAnnotationData/All_20170710.vcf.gz
 	
 	# Rerun the bcftool +fixref check to see if the file has been fixed and all unmatched alleles have been dropped
 		printf "\n\nRun bcftools +fixref to see if the file has been fixed - all alleles are matched and all unmatched alleles have been dropped \n"
