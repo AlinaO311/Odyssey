@@ -336,6 +336,10 @@ else
 
 fi
 
+ qdir_name=`basename $RawData`
+ export VARIABLENAME=$RawData
+ echo -e 'source("./1_Target/.1_PreGWAS-QC.R") \n \n q()' | R --no-save --slave
+
 	
 # Termination Message
 	echo
