@@ -54,11 +54,13 @@ echo ----------------------------------------------
 echo $PWD
 
 #Get central data directory
-echo -n "Central directory for data files":  
-read -p MAIN
+#echo -n "Central directory for data files":  
+read -p "Central directory for data files":
 
 #Get the BaseName of the Data -- must have a Plink .bim file in the folder
 RawData="$(ls $REPLY/oddyssey_data*/*.bim | awk -F/ '{print $NF}' | awk -F'.' '{print $1}')"
+
+mkdir -p ./${RawData}_Step0out
 
 # Controls whether BCFTools +Fixref is performed on the dataset
 
@@ -67,7 +69,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo ----------------------------------------------
 		
 	#Make Temp Directory in which all Temp files will populate
-		mkdir -p $PWD/TMP
+		mkdir -p $PWD/TEMP
 
 	# Download all the Reference Data to Reformat the files
 	# ----------------------------------------------------------------------------
@@ -217,13 +219,15 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 		
-		${Plink_Exec} --bfile ./TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex ./PLACE_DATA_2B_FIXED_HERE/${RawData}.fam 3 --make-bed --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/DataFixStep5_${RawData}-PhaseReady
+		mkdir -p /${RawData}_Step0out/TargetData
+		
+		${Plink_Exec} --bfile ./TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex ./${RawData}.fam 3 --make-bed --out ./${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
 		
 
 		echo
 		echo
 		echo ----------------------------------------------
-		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> ./Odyssey/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/DataFixStep5_${RawData}-PhaseReady \n"
+		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> ./Odyssey/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
 		echo ----------------------------------------------
 	
 	
@@ -241,8 +245,6 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo ----------------------------------------------
 	
 		if [ -d "./TEMP" ]; then rm -r ./TEMP; fi
-
-		#rm ./0_DataPrepModule/DataFixStep*
 	
 	fi
 	
@@ -260,14 +262,14 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 		echo
 		echo
 	
-		${Plink_Exec} --bfile ./PLACE_DATA_2B_FIXED_HERE/${RawData} --list-duplicate-vars ids-only suppress-first --out ./TEMP/Dups2Remove
+		${Plink_Exec} --bfile ./${RawData} --list-duplicate-vars ids-only suppress-first --out ./TEMP/Dups2Remove
 		
 		printf "\n\nRemoving Positional and Allelic Duplicates \n"
 		echo ----------------------------------------------
 		echo
 		echo
 	
-		${Plink_Exec} --bfile ./PLACE_DATA_2B_FIXED_HERE/${RawData} --exclude ./TEMP/Dups2Remove.dupvar --make-bed --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/DataFixStep5_${RawData}-PhaseReady
+		${Plink_Exec} --bfile ./${RawData} --exclude ./TEMP/Dups2Remove.dupvar --make-bed --out ./${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
 		
 	if [ "${SaveDataPrepIntermeds,,}" == "f" ]; then
 	
@@ -285,7 +287,7 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 		echo
 		echo
 		echo ----------------------------------------------
-		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> ./Odyssey/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/DataFixStep5_${RawData}-PhaseReady \n"
+		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> ./Odyssey/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
 		echo ----------------------------------------------
 	
 else
@@ -302,12 +304,12 @@ fi
 # Visualize genomic data for missingness, heterozygosity, and relatedness
 if [ "${DataVisualization,,}" == "t" ]; then
 	printf "\n\n===================================================\n"
-	printf "Data QC-Visualization\n----------------\n\nPreparing to perform QC analysis on the SINGLE Plink .bed/.bim/.fam dataset within:\n./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/\n\nNOTE: If no data is present, then this analysis will be skipped \n\nAll Data and Plots will be saved to ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE"
+	printf "Data QC-Visualization\n----------------\n\nPreparing to perform QC analysis on the SINGLE Plink .bed/.bim/.fam dataset within:\n./${RawData}_Step0out/TargetData/\n\nNOTE: If no data is present, then this analysis will be skipped \n\nAll Data and Plots will be saved to ./${RawData}_Step0out/TargetData"
 	printf "\n--------------------------------\n\n"
 
 	# Executes the Rscript to analyze and visualize the GWAS analysis
 
-		Arg6="${WorkingDir}";
+		Arg6="${PWD}";
 		Arg7="${X11}";
 
 		${Rscript} ./1_Target/.1_PreGWAS-QC.R $Arg6 $Arg7
@@ -317,7 +319,7 @@ if [ "${DataVisualization,,}" == "t" ]; then
 		echo
 		echo "Copying Analysis Data and Visualizations to Quick Results Folder"
 		echo ------------------------------------------------------------------
-		cp -R ${WorkingDir}1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization ${WorkingDir}5_QuickResults/${BaseName}/
+		cp -R ./${RawData}_Step0out/TargetData/Dataset_QC-Visualization ./5_QuickResults/${RawData}_results/
 
 elif [ "${DataVisualization,,}" == "f" ]; then
 
