@@ -42,17 +42,19 @@
 		print(getwd())
 		cat("--------------------------------\n\n")
 
+	 	
+	# Get the Base Name of the Plink files currently housed in TargetData
+	       qdir<-Sys.getenv("VARIABLENAME")
+               pathname<-qdir[1]
+	       system(paste0("ls ", getwd(), pathname ,"_Step0out/TargetData/*.log", "| awk -F/ '{print $NF}' | sed 's/.log*.//'"), intern=TRUE) ->BaseName
 		
-	# Get the Base Name of the Plink files currently housed in ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE
-		system(paste0("ls ", getwd(), "/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/*.log", "| awk -F/ '{print $NF}' | sed 's/.log*.//'"), intern=TRUE) ->BaseName
-		
-	# Setup a QC Folder within the ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE folder
+	# Setup a QC Folder within the TargetData folder
 		cat("\n\n===================================================\n")
-		cat("Creating QC Folder within ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE\n")
+		cat("Creating QC Folder within TargetData folder\n")
 		cat("--------------------------------\n\n")
 		
 		
-		system(paste0("mkdir -p ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization"))
+		system(paste0("mkdir -p", getwd(), pathname , "_Step0out/TargetData/Dataset_QC-Visualization"))
 
 
 # ============================
@@ -65,7 +67,7 @@
 	cat("Assessing Missingness for Individuals & Variants\n")
 	cat("--------------------------------\n\n")
 
-	system(paste0(plink, " --bfile ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/", BaseName, " --missing --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Missing"))
+	system(paste0(plink, " --bfile", getwd(), pathname, BaseName, " --missing --out", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/Missing"))
 
 	cat('\n\n')
 
@@ -94,7 +96,7 @@
 			}
 
 # Load the Missingness data
-	lmiss <- fread(paste0(getwd(), "/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Missing.lmiss"), header = T)
+	lmiss <- fread(paste0(getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/Missing.lmiss"), header = T)
 	
 # ============================
 ## Plot Variant Missingness
@@ -104,7 +106,7 @@
 	plot=ggplot(lmiss, aes(x=lmiss$F_MISS)) +
 	geom_histogram(aes(fill=..count..))	
 			
-		jpeg(paste0(getwd(),"/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Missing.jpg"))
+		jpeg(paste0(getwd(), pathname ,"/TargetData/Dataset_QC-Visualization/Missing.jpg"))
 			plot+scale_y_continuous(expand = c(0,0),
 								label = unit_format(unit="K", scale=1e-3),
 								limits=c(0,max(ggplot_build(plot)$data[[1]]$count)/2.5))+
@@ -165,13 +167,13 @@ if(X11Option == "T" || X11Option == "t")
 
 if (interactive() ){
 	# Interactive Prompt
-		cat(paste('\n\nA Graph Visualizing All Variant Missingness Rates Using a User-Provided QC Cutoff of', GenoQC,'Saved To: \n./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization\n'))
+		cat(paste('\n\nA Graph Visualizing All Variant Missingness Rates Using a User-Provided QC Cutoff of', GenoQC,'Saved To: \n', getwd(),pathname ,'/TargetData/Dataset_QC-Visualization\n'))
 		cat('--------------------------------\n\n')
 		readline(prompt="Press Enter/Return Key To Continue")
 	}
          else{
 	# Non-interacti1veve Prompt
-		cat(paste('\n\nA Graph Visualizing All Variant Missingness Rates Using a User-Provided QC Cutoff of', GenoQC,'Saved To: \n./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization\n'))
+		cat(paste('\n\nA Graph Visualizing All Variant Missingness Rates Using a User-Provided QC Cutoff of', GenoQC,'Saved To: \n', getwd(),pathname ,'/TargetData/Dataset_QC-Visualization\n'))
 		cat('--------------------------------\n\nPress Enter/Return Key To Continue\n')
 		readLines(con="stdin",1)
 		cat( "\n" )
@@ -228,24 +230,24 @@ if (interactive() ){
 # Calculate Heterozygosity
 	cat('Calculating Heterozygosity\n')
 	cat('----------------------------\n\n')
-	system(paste0(plink, " --bfile ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/", BaseName, " --het --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Het"))
+	system(paste0(plink, " --bfile ", getwd(), pathname , BaseName, " --het --out ", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/Het"))
 
 	cat('\n\n')
 
-	het = fread(paste0(getwd(), "/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Het.het"), header = T)
+	het = fread(paste0(getwd(), pathname,"/TargetData/Dataset_QC-Visualization/Het.het"), header = T)
 
 ## Add a column onto the imported het variable The new column consists of the calculation of the mean Het
 	het$meanHet = (het$`N(NM)` - het$`O(HOM)`)/het$`N(NM)`
 		
 ## Load the .imiss file -- Missingness for individuals file	
-	imiss = fread(paste0(getwd(), "/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/Missing.imiss"), header = T)
+	imiss = fread(paste0(getwd(), pathname "/TargetData/Dataset_QC-Visualization/Missing.imiss"), header = T)
 
 # =========================================
 ## Plot Heterozygosity v Indiv Missingness
 # =========================================
 
 ## Plot the imiss vs. het Output to a jpeg file (Setup to show +/- X SD of Het Mean)
-	jpeg(paste0(getwd(),"/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/IndivMissingVSheterozygosity.jpg"))
+	jpeg(paste0(getwd(), pathname "/TargetData/Dataset_QC-Visualization/IndivMissingVSheterozygosity.jpg"))
 	
 	# Set Standard Deviation Cutoff Criteria
 		LowerSD<-mean(het$meanHet) - (HetQC * sd(het$meanHet))
@@ -345,7 +347,7 @@ if (interactive() ){
 		UpperSD)) , 1:2]
 	
 ## Export to 'fail-imisshet-qc.txt'
-	write.table(failed.miss.het, file = paste0(getwd(),"/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/failed.imisshet.txt"), col.names = T, row.names = F, quote = F, sep = "\t")
+	write.table(failed.miss.het, file = paste0(getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/failed.imisshet.txt"), col.names = T, row.names = F, quote = F, sep = "\t")
 
 	
 # ==============================
@@ -365,25 +367,25 @@ if (interactive() ){
 	cat('\n\nCreating TEMP IBD Dataset to Assess IBD\n')
 	cat("--------------------------------\n\n")
 
-	system(paste0(plink, " --bfile ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/", BaseName, " --mind 0.05 --geno 0.05 --make-bed --freq --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1_IBDDataset"))
+	system(paste0(plink, " --bfile ",getwd(), pathname, BaseName, " --mind 0.05 --geno 0.05 --make-bed --freq --out ", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/1_IBDDataset"))
 
 	cat('\n\n')
 
 ## Prune the Dataset that has been corrected for poor SNP's and Individuals
 	cat('\n\nPruning TEMP IBD Dataset\n-----------------------------------------\n\n')
-	system(paste0(plink, " --bfile 	./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1_IBDDataset --indep-pairwise 50 5 0.2 --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/2_IBDDataset_Pruned"))
+	system(paste0(plink, " --bfile", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/1_IBDDataset --indep-pairwise 50 5 0.2 --out", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/2_IBDDataset_Pruned"))
 
 
 ## Create the IBD File to determine those who need to be removed due to relatedness/dups
 	cat('\n\n\nPerforming IBD Test on Sample Dataset with Cleaned Data Allele Frequencies \n-----------------------------------------\n\n')
-	system(paste0(plink, " --bfile ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1_IBDDataset --extract ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/2_IBDDataset_Pruned.prune.in --mind 0.1 --genome --min 0.1875 --read-freq ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1_IBDDataset.frq --out ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/RelatedTest"))
+	system(paste0(plink, " --bfile ", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/1_IBDDataset --extract ", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/2_IBDDataset_Pruned.prune.in --mind 0.1 --genome --min 0.1875 --read-freq", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/1_IBDDataset.frq --out ", getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/RelatedTest"))
 
 
 ## Import the '.genome file
 	cat(paste('\n\nOutputting Interactive Plotly IBD Plots to Folder\n'))
 	cat("--------------------------------------------------------\n\n")
 
-	Related <- fread(paste0('./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/RelatedTest.genome'), h = T)
+	Related <- fread(paste0(getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/RelatedTest.genome'), h = T)
 
 	
 ## Prompt for IBD Cutoff
@@ -419,7 +421,7 @@ if (interactive() ){
 
 	# Save Plotly-Plot to QC Folder
 		# Plotely Dependencies will be plotted in the Directory where plot is saved
-			htmlwidgets::saveWidget(IBD_Plot, paste0(getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/IBD-Plot.html'), libdir = paste0(getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/PlotlyDependencies/'), selfcontained=FALSE) 
+			htmlwidgets::saveWidget(IBD_Plot, paste0(getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/IBD-Plot.html'), libdir = paste0(getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/PlotlyDependencies/'), selfcontained=FALSE) 
 
 
 		cat(paste('\nOutputting List of Individuals with an IBD > ', IBDQC, '\n'))
@@ -428,7 +430,7 @@ if (interactive() ){
 ##Output the 1st two Columns so we can remove those people from the GWAS
 	failed.related = Related[which(Related$PI_HAT>=IBDQC), c("FID1", "IID1")]
 
-	write.table(failed.related, file = paste0("./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/failed.related.txt"), col.names = T, row.names = F, quote = F, sep = "\t")
+	write.table(failed.related, file = paste0(getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/failed.related.txt"), col.names = T, row.names = F, quote = F, sep = "\t")
 
 # ==============================
 ## Perform Final QC Exclusion
@@ -459,13 +461,13 @@ if (interactive() ){
 		}	
 
 ## Load Related Check QC
-	(failed.miss.het = read.table(file = paste0('./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/failed.imisshet.txt'), header = T, colClasses = 'factor'))
+	(failed.miss.het = read.table(file = paste0(getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/failed.imisshet.txt'), header = T, colClasses = 'factor'))
 
 	cat('List of the first individual in the pair who failed IBD\n')
 	cat('Note: In any IBD pair only ONE individual will be dropped\n')
 	cat('--------------------------------\n')
 
-	failed.related = read.table(file = paste0("./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/failed.related.txt"), header = T, colClasses = 'factor')
+	failed.related = read.table(file = paste0(getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/failed.related.txt"), header = T, colClasses = 'factor')
 	colnames(failed.related) <- c("FID", "IID")
 	print(failed.related)
 	
@@ -481,15 +483,15 @@ if (interactive() ){
 
 	
 ## Output to a Text File in the QC Folder
-	write.table(failed.individualuniq, file = paste0("./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/failed.qc.txt"), sep = "\t", col.names = F, row.names = F, quote = F)
+	write.table(failed.individualuniq, file = paste0(getwd(), pathname, "_Step0out/TargetData/Dataset_QC-Visualization/failed.qc.txt"), sep = "\t", col.names = F, row.names = F, quote = F)
 	
 ## Cleanup the Junk
 	cat("\n\n===================================================\n")
 	cat('Cleaning Up Temporary Files\n')
 	cat("--------------------------------\n\n")
 
-	system(paste0('rm -f ', getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/2*'))
-	system(paste0('rm -f ', getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/1*'))
+	system(paste0('rm -f ',getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/2*'))
+	system(paste0('rm -f ', getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/1*'))
 	
 	
 # Create a custom Readme file in the target directory to explain what is being populated
@@ -498,7 +500,7 @@ if (interactive() ){
 	cat('Writing Readme to File\n')
 	cat("--------------------------------\n\n")
 	
-sink(paste0(getwd(),'/1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/Dataset_QC-Visualization/README_QC'))
+sink(paste0(getwd(), pathname, '_Step0out/TargetData/Dataset_QC-Visualization/README_QC'))
 
 	
 cat(paste0("README for Dataset_QC-Visualization
