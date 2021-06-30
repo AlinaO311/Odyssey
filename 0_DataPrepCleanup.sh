@@ -60,7 +60,7 @@ read -p "Full path to location of data directories":
 #Get the BaseName of the Data -- must have a Plink .bim file in the folder
 RawData="$(ls $REPLY/*_oddysseyData/*.bim | awk -F/ '{print $NF}' | awk -F'.' '{print $1}')"
 
-mkdir -p $REPLY/${RawData}*/${RawData}_Step0out #TargetData folder
+mkdir -p $REPLY/${RawData}_oddysseyData/${RawData}_Step0out #TargetData folder
 
 # Controls whether BCFTools +Fixref is performed on the dataset
 
@@ -69,7 +69,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo ----------------------------------------------
 		
 	#Make Temp Directory in which all Temp files will populate
-		mkdir -p $REPLY/${RawData}*/TEMP
+		mkdir -p $REPLY/${RawData}_oddysseyData/TEMP
 
 	# Download all the Reference Data to Reformat the files
 	# ----------------------------------------------------------------------------
@@ -82,11 +82,11 @@ if [ "${PerformFixref,,}" == "t" ]; then
 	
 		echo Downloading: ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
 		echo
-		wget --directory-prefix=./RefAnnotationData/ ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
-		wget --directory-prefix=./RefAnnotationData/ ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.fai	
+		wget --directory-prefix=$REPLY/RefAnnotationData/ ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.gz
+		wget --directory-prefix=$REPLY/RefAnnotationData/ ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/human_g1k_v37.fasta.fai	
 		
 		# Unzip Fasta file
-		${gunzip_Exec} -d ./RefAnnotationData/human_g1k_v37.fasta.gz
+		${gunzip_Exec} -d $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz
 		
 		# Rezip Fasta File in bgzip
 		${bgzip_Exec} $REPLY/RefAnnotationData/human_g1k_v37.fasta
@@ -97,8 +97,8 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo Downloading ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
 		echo
-		wget --directory-prefix=./RefAnnotationData/ ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
-		wget --directory-prefix=./RefAnnotationData/ ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz.tbi
+		wget --directory-prefix=$REPLY/RefAnnotationData/ ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz
+		wget --directory-prefix=$REPLY/RefAnnotationData/ ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b150_GRCh37p13/VCF/All_20170710.vcf.gz.tbi
 	
 	
 	fi
@@ -118,7 +118,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		${Plink_Exec} --bfile $REPLY/${RawData}* --recode vcf --out $REPLY/${RawData}*/TEMP/DataFixStep1_${RawData}
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData --recode vcf --out $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep1_${RawData}
 	
 	# Convert from a VCF into a BCF and also rename the chromosomes to match the reference fasta (where [chr]23 is X, 24 is Y, etc.)
 		
@@ -127,7 +127,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		bcftools annotate -Ob --rename-chrs $REPLY/RefAnnotationData/PlinkChrRename.txt $REPLY/${RawData}*/TEMP/DataFixStep1_${RawData}.vcf > $REPLY/${RawData}*/TEMP/DataFixStep1_${RawData}.bcf
+		bcftools annotate -Ob --rename-chrs $REPLY/RefAnnotationData/PlinkChrRename.txt $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep1_${RawData}.vcf > $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep1_${RawData}.bcf
 	
 	fi
 	
@@ -145,7 +145,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		bcftools +fixref $REPLY/${RawData}*/TEMP/DataFixStep1_${RawData}.bcf -- -f $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz
+		bcftools +fixref $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep1_${RawData}.bcf -- -f $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz
 	
 	# Run bcftools to fix/swap the allels based on the downloaded annotation file
 		printf "\n\nRun bcftools +fixref to fix allels based on the downloaded annotation file \n"
@@ -153,7 +153,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		bcftools +fixref $REPLY/${RawData}*/TEMP/DataFixStep1_${RawData}.bcf -Ob -o $REPLY/${RawData}*/TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -d -f ./RefAnnotationData/human_g1k_v37.fasta.gz -i ./RefAnnotationData/All_20170710.vcf.gz
+		bcftools +fixref $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep1_${RawData}.bcf -Ob -o $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -d -f $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz -i $REPLY/RefAnnotationData/All_20170710.vcf.gz
 	
 	# Rerun the bcftool +fixref check to see if the file has been fixed and all unmatched alleles have been dropped
 		printf "\n\nRun bcftools +fixref to see if the file has been fixed - all alleles are matched and all unmatched alleles have been dropped \n"
@@ -161,7 +161,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		bcftools +fixref $REPLY/${RawData}*/TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -f $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz
+		bcftools +fixref $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep2_${RawData}-RefFixed.bcf -- -f $REPLY/RefAnnotationData/human_g1k_v37.fasta.gz
 		
 	fi
 	
@@ -176,7 +176,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		printf "\n\nSorting the BCF output since fixing it may have made it unsorted \n"
 		echo ----------------------------------------------
 	
-		(bcftools view -h $REPLY/${RawData}*/TEMP/DataFixStep2_${RawData}-RefFixed.bcf; bcftools view -H $REPLY/${RawData}*/TEMP/DataFixStep2_${RawData}-RefFixed.bcf | sort -k1,1d -k2,2n;) | bcftools view -Ob -o $REPLY/${RawData}*/TEMP/DataFixStep3_${RawData}-RefFixedSorted.bcf
+		(bcftools view -h $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep2_${RawData}-RefFixed.bcf; bcftools view -H $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep2_${RawData}-RefFixed.bcf | sort -k1,1d -k2,2n;) | bcftools view -Ob -o $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep3_${RawData}-RefFixedSorted.bcf
 		
 		printf "Done \n\n\n"
 	
@@ -186,7 +186,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		${Plink_Exec} --bcf $REPLY/${RawData}*/TEMP/DataFixStep3_${RawData}-RefFixedSorted.bcf --make-bed --out $REPLY/${RawData}*/TEMP/DataFixStep3_${RawData}-RefFixSorted
+		${Plink_Exec} --bcf $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep3_${RawData}-RefFixedSorted.bcf --make-bed --out $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep3_${RawData}-RefFixSorted
 		
 		
 	# Finally Remove any positional duplicates 
@@ -198,17 +198,17 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 	
-		${Plink_Exec} --bfile $REPLY/${RawData}*/TEMP/DataFixStep3_${RawData}-RefFixSorted --list-duplicate-vars ids-only suppress-first --out $REPLY/${RawData}*/TEMP/Dups2Remove
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep3_${RawData}-RefFixSorted --list-duplicate-vars ids-only suppress-first --out $REPLY/${RawData}_oddysseyData/TEMP/Dups2Remove
 		
 		# Report Number of duplicates:
-		DuplicateNumber="$(wc $REPLY/${RawData}*/TEMP/Dups2Remove.dupvar | awk '{print $1}')"
+		DuplicateNumber="$(wc $REPLY/${RawData}_oddysseyData/TEMP/Dups2Remove.dupvar | awk '{print $1}')"
 		
 		printf "\n\nRemoving Positional and Allelic Duplicates if they exist\nFound ${DuplicateNumber} Duplicate Variant/s\n"
 		echo ----------------------------------------------
 		echo
 		echo
 	
-		${Plink_Exec} --bfile $REPLY/${RawData}*/TEMP/DataFixStep3_${RawData}-RefFixSorted --exclude $REPLY/TEMP/Dups2Remove.dupvar --make-bed --out $REPLY/${RawData}*/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep3_${RawData}-RefFixSorted --exclude $REPLY/TEMP/Dups2Remove.dupvar --make-bed --out $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups
 		
 		
 		
@@ -221,13 +221,13 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		
 		mkdir -p $REPLY/${RawData}*/${RawData}_Step0out/TargetData
 		
-		${Plink_Exec} --bfile $REPLY/${RawData}*/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex $REPLY/${RawData}*/${RawData}.fam 3 --make-bed --out $REPLY/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
+		${Plink_Exec} --bfile $REPLY/${RawData}*/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex $REPLY/${RawData}_oddysseyData/${RawData}.fam 3 --make-bed --out $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
 		
 
 		echo
 		echo
 		echo ----------------------------------------------
-		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> $REPLY/Odyssey/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
+		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
 		echo ----------------------------------------------
 	
 	
@@ -244,14 +244,14 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo Tidying Up -- Cleanup Intermediate Files
 		echo ----------------------------------------------
 	
-		if [ -d "$REPLY/${RawData}*/TEMP" ]; then rm -r $REPLY/${RawData}*/TEMP; fi
+		if [ -d "$REPLY/${RawData}_oddysseyData/TEMP" ]; then rm -r $REPLY/${RawData}_oddysseyData/TEMP; fi
 	
 	fi
 	
 elif [ "${PerformFixref,,}" == "f" ]; then
 
 	#Make Temp Directory in which all Temp files will populate
-		mkdir -p $REPLY/${RawData}*/TEMP
+		mkdir -p $REPLY/${RawData}_oddysseyData/TEMP
 
 		
 	# Finally Remove any positional duplicates 
@@ -262,14 +262,14 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 		echo
 		echo
 	
-		${Plink_Exec} --bfile $REPLY/${RawData}* --list-duplicate-vars ids-only suppress-first --out $REPLY/${RawData}*/TEMP/Dups2Remove
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData --list-duplicate-vars ids-only suppress-first --out $REPLY/${RawData}_oddysseyData/TEMP/Dups2Remove
 		
 		printf "\n\nRemoving Positional and Allelic Duplicates \n"
 		echo ----------------------------------------------
 		echo
 		echo
 	
-		${Plink_Exec} --bfile $REPLY/${RawData}* --exclude $REPLY/${RawData}*/TEMP/Dups2Remove.dupvar --make-bed --out $REPLY/${RawData}*/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData --exclude $REPLY/${RawData}_oddysseyData/TEMP/Dups2Remove.dupvar --make-bed --out $REPLY/$${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
 		
 	if [ "${SaveDataPrepIntermeds,,}" == "f" ]; then
 	
@@ -287,7 +287,7 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 		echo
 		echo
 		echo ----------------------------------------------
-		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> $REPLY/Odyssey/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
+		printf "Analysis Ready Data -- DataFixStep5_${RawData}-PhaseReady -- Output to --> $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady \n"
 		echo ----------------------------------------------
 	
 else
@@ -304,7 +304,7 @@ fi
 # Visualize genomic data for missingness, heterozygosity, and relatedness
 if [ "${DataVisualization,,}" == "t" ]; then
 	printf "\n\n===================================================\n"
-	printf "Data QC-Visualization\n----------------\n\nPreparing to perform QC analysis on the SINGLE Plink .bed/.bim/.fam dataset within:\n.$REPLY/${RawData}*/${RawData}_Step0out/TargetData/\n\nNOTE: If no data is present, then this analysis will be skipped \n\nAll Data and Plots will be saved to $REPLY/${RawData}*/${RawData}_Step0out/TargetData"
+	printf "Data QC-Visualization\n----------------\n\nPreparing to perform QC analysis on the SINGLE Plink .bed/.bim/.fam dataset within:\n.$REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/\n\nNOTE: If no data is present, then this analysis will be skipped \n\nAll Data and Plots will be saved to $REPLY/${RawData}*/${RawData}_Step0out/TargetData"
 	printf "\n--------------------------------\n\n"
 
 	# Executes the Rscript to analyze and visualize the GWAS analysis
@@ -319,7 +319,7 @@ if [ "${DataVisualization,,}" == "t" ]; then
 		echo
 		echo "Copying Analysis Data and Visualizations to Quick Results Folder"
 		echo ------------------------------------------------------------------
-		cp -R $REPLY/${RawData}*/${RawData}_Step0out/TargetData/Dataset_QC-Visualization $REPLY/${RawData}*/5_QuickResults/${RawData}_results/
+		cp -R $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/Dataset_QC-Visualization $REPLY/${RawData}_oddysseyData/5_QuickResults/${RawData}_results/
 
 elif [ "${DataVisualization,,}" == "f" ]; then
 
