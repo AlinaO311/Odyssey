@@ -50,9 +50,8 @@
 	echo
 	echo Changing to Working Directory
 	echo ----------------------------------------------
-	echo ${WorkingDir}
-	
-		cd ${WorkingDir}
+	                
+			cd 
 
 
 # Create Project Folder within Target Directory
@@ -63,29 +62,29 @@
 	echo Creating Project Folder within Target Directory
 	echo ----------------------------------------------
 	echo 
-		mkdir -p ./1_Target/${BaseName}
+		mkdir -p $REPLY/${RawData}_oddysseyDat/${RawData}_project
 
 
-# Move Data from 'PLACE_NEW_PROJECT_TARGET_DATA_HERE' folder into Project Directory
+# Move Data from 'TargetData' folder into Project Directory
 # ----------------------------------------------------------------------------------
 
-# Look into the PLACE_NEW_PROJECT_TARGET_DATA_HERE Folder and record the name of the Plink dataset
-	Cohort_InputFileName="$(ls ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/*.bim | awk -F/ '{print $NF}'| awk -F'.' '{print $1}')"
+# Look into the TargetData Folder and record the name of the Plink dataset
+	Cohort_InputFileName="$(ls $REPLY/${RawData}_oddysseyDat/${RawData}_Step0out/TargetData/*.bim | awk -F/ '{print $NF}'| awk -F'.' '{print $1}')"
 
 	echo
 	echo
-	echo "Moving target files from the 'PLACE_NEW_PROJECT_TARGET_DATA_HERE' folder into the Project Folder: ${BaseName}"
+	echo "Moving target files from the 'TargetData' folder into the Project Folder: ${BaseName}"
 	echo ---------------------------------------------------------
 	echo
 	echo
 
 # Move it
-	mv ./1_Target/PLACE_NEW_PROJECT_TARGET_DATA_HERE/* ./1_Target/${BaseName}
+	mv  $REPLY/${RawData}_oddysseyDat/${RawData}_Step0out/TargetData/* $REPLY/${RawData}_oddysseyDat/${RawData}_project
 
 	sleep 2
 
 # Also change the permission levels for the data in the Target Directory so it is readable, writable, and executable by the owner of the folder
-	chmod -R 700 ./1_Target/
+	chmod -R 700 $REPLY/${RawData}_oddysseyDat/
 
 	
 # QC (2 Steps): this will exclude genotypes before people (prioritizing people over variants)
@@ -95,25 +94,25 @@
 	echo
 	
 	
-	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/${Cohort_InputFileName} --geno ${GenoQC} --hwe ${HweQC} --maf ${MafQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1
+	${Plink_Exec} --allow-no-sex --bfile $REPLY/${RawData}_oddysseyDat/${RawData}_project/${Cohort_InputFileName} --geno ${GenoQC} --hwe ${HweQC} --maf ${MafQC} --make-bed --out $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody1_${BaseName}_Pre-ImputeQC1
 
 	printf "\n\n\nPerfoming QC Step 2 -- Removing Poorly Genotyped Individuals"
 	echo -----------------------------------------------------------
 	echo
 	
 
-	${Plink_Exec} --allow-no-sex --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC1 --mind ${MindQC} --make-bed --out ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2
+	${Plink_Exec} --allow-no-sex --bfile $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody1_${RawData}_Pre-ImputeQC1 --mind ${MindQC} --make-bed --out $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody1_${RawData}_Pre-ImputeQC2
 	
 	
 # Splitting BED/bim/fam by chromosome (goes through all 26 chromosomes by default)
 # ----------------------------------------------------------------------------------
 for chr in {1..26}; do
 
-	printf "\n\n\nProcessing ${BaseName}_Pre-ImputeQC2 Plink Dataset -- Isolating Chromosome ${chr}"
+	printf "\n\n\nProcessing ${RawData}_Pre-ImputeQC2 Plink Dataset -- Isolating Chromosome ${chr}"
 	echo ----------------------------------------------------------------------------
 	echo
 	
-	$Plink_Exec --bfile ./1_Target/${BaseName}/Ody1_${BaseName}_Pre-ImputeQC2 --chr ${chr} --make-bed --out ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr}
+	$Plink_Exec --bfile $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody1_${RawData}_Pre-ImputeQC2 --chr ${chr} --make-bed --out $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody2_${RawData}_PhaseReady.chr${chr}
 	
 done
 
