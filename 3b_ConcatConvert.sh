@@ -42,11 +42,9 @@
 # -------------------------------------------------
 echo
 echo
-echo Changing to Working Directory
+echo Current Working Directory
 echo ----------------------------------------------
-echo ${WorkingDir}
-
-	cd ${WorkingDir}
+echo $REPLY
 	
 
 
@@ -75,7 +73,7 @@ if [ "${UseImpute,,}" == "t" ]; then
 		echo It may take a while to scan all the .out files
 		echo ==============================================
 		echo
-			find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+			find $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
 		echo
 		echo ==============================================
 		echo
@@ -96,7 +94,7 @@ if [ "${UseImpute,,}" == "t" ]; then
 			echo "Outputting more details on failed file/s..."
 			echo ===========================================
 			echo
-			find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+			find $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
 			echo
 			echo ===========================================
 		
@@ -163,7 +161,7 @@ if [ "${UseImpute,,}" == "t" ]; then
 							cat $UserInput4 | sort -V | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
 							
 						# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-							find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+							find $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 			
 						# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 							cat ReSubmitImputeJobs.txt | bash
@@ -183,10 +181,10 @@ if [ "${UseImpute,,}" == "t" ]; then
 						# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 						# 3,4) Sorts the .out files and subs .out for .sh to get the script
 						# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
-							find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
+							find $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitImputeJobs.txt
 							
 						# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-							find ./3_Impute/${BaseName}/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+							find $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 			
 						# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 							cat ReSubmitImputeJobs.txt | bash
