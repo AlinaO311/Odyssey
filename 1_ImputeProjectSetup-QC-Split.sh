@@ -48,10 +48,9 @@
 # -------------------------------------------------
 	echo
 	echo
-	echo Changing to Working Directory
+	echo Current Working Directory
 	echo ----------------------------------------------
-	                
-			cd 
+	echo $REPLY	            
 
 
 # Create Project Folder within Target Directory
