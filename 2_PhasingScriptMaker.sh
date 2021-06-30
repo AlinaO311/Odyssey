@@ -39,23 +39,23 @@
 
 # Set Working Directory
 # ------------------------
-	printf "\nChanging to Working Directory\n"
+	printf "\nCurrent Working Directory\n"
 	echo ----------------------------------------------
-	echo ${WorkingDir}
-		cd ${WorkingDir}
+	echo $REPLY
+
 	
 	# Creating Imputation Project Folders within Phase Directory
 	# -----------------------------------------------------------
 	printf "\nCreating Imputation Project Folder within Phase Directory\n\n"
 	
-		mkdir -p ./2_Phase/${BaseName}
+		mkdir -p $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject
 			
 			# Perform Lustre Stripping?
 			if [ "${LustreStrip,,}" == "t" ]; then
-				lfs setstripe -c 2 ./2_Phase/${BaseName}
+				lfs setstripe -c 2 $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject
 			fi
 		
-		mkdir -p ./2_Phase/${BaseName}/Scripts2Shapeit
+		mkdir -p $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit
 	
 
 ## --------------------------------------------------------------------------------------
@@ -95,21 +95,21 @@ if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
 					# Ref Build Updated Aug 3 2015
 	
 					printf "\n\nRetrieving 1K Genome Phase 3 Ref Panel and hg19 Genetic Map from Impute2 Website \n-------------------------------------------------------------------------------\n\n\n"
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
 				
 				#Unzip the packaged ref panel
 					printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3.tgz -C ${WorkingDir}Reference/
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3_chrX.tgz -C ${WorkingDir}Reference/
+						tar -xzf $REPLY/Reference/1000GP_Phase3.tgz -C $REPLY/Reference/
+						tar -xzf $REPLY/Reference/1000GP_Phase3_chrX.tgz -C $REPLY/Reference/
 				
 				# Since untar makes an additional directory, move all the files from the 1000GP_Phase3 folder and move it into the Ref Directory
 					printf "\n\nCleaning Up \n-------------------\n\n"
-						mv ${WorkingDir}Reference/1000GP_Phase3/* ${WorkingDir}Reference/
+						mv $REPLY/Reference/1000GP_Phase3/* $REPLY/Reference/
 										
 				# Delete the now empty directory and the tgz zipped Ref panel
-					rmdir ${WorkingDir}Reference/1000GP_Phase3/
-					rm ${WorkingDir}Reference/*.tgz
+					rmdir $REPLY/Reference/1000GP_Phase3/
+					rm $REPLY/Reference/*.tgz
 		
 		
 		
@@ -125,34 +125,34 @@ if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
 					# Ref Build Updated Aug 3 2015
 	
 					printf "\n\nRetrieving 1K Genome Phase 3 Ref Panel and hg19 Genetic Map from Impute2 Website \n-------------------------------------------------------------------------------\n\n\n"
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
 				
 				#Unzip the packaged ref panel
 					printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3.tgz -C ${WorkingDir}Reference/
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3_chrX.tgz -C ${WorkingDir}Reference/
+						tar -xzf $REPLY/Reference/1000GP_Phase3.tgz -C $REPLYReference/
+						tar -xzf $REPLY/}Reference/1000GP_Phase3_chrX.tgz -C $REPLY/Reference/
 				
 				# Since untar makes an additional directory, move all the files from the 1000GP_Phase3 folder and move it into the Ref Directory
 					printf "\n\nCleaning Up \n-------------------\n\n"
-						mv ${WorkingDir}Reference/1000GP_Phase3/* ${WorkingDir}Reference/
+						mv $REPLY/Reference/1000GP_Phase3/* $REPLY/Reference/
 										
 				# Delete the now empty directory and the tgz zipped Ref panel
-					rmdir ${WorkingDir}Reference/1000GP_Phase3/
-					rm ${WorkingDir}Reference/*.tgz
+					rmdir $REPLY/Reference/1000GP_Phase3/
+					rm $REPLY/Reference/*.tgz
 				
 				# Remove the .hap.gz and .legend.gz files since we are using the Minimac mvcf Ref Panel
-					rm ${WorkingDir}Reference/*hap.gz
-					rm ${WorkingDir}Reference/*legend.gz
+					rm $REPLY/Reference/*hap.gz
+					rm $REPLY/Reference/*legend.gz
 					
 				# Download the Minimac4 mvcf
-					wget --directory-prefix=${WorkingDir}Reference/ ftp://share.sph.umich.edu/minimac3/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz
+					wget --directory-prefix=$REPLY/Reference/ ftp://share.sph.umich.edu/minimac3/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz
 					
 				#Unpack
-					tar -xzf ${WorkingDir}Reference/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz -C ${WorkingDir}Reference/
+					tar -xzf $REPLY/Reference/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz -C $REPLY/Reference/
 			
 				# Remove original .tar.gz Minimac Ref Panel
-					rm ${WorkingDir}Reference/*tar.gz
+					rm $REPLY/Reference/*tar.gz
 			
 			else
 				printf "Invalid Phasing/Imputation Program Combo -- Exiting \n\n"
@@ -173,24 +173,24 @@ if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
 					# Ref Build Updated Aug 3 2015
 	
 					printf "\n\nRetrieving 1K Genome Phase 3 Ref Panel and hg19 Genetic Map from Impute2 Website \n-------------------------------------------------------------------------------\n\n\n"
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
-						wget --directory-prefix=${WorkingDir}Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
-						wget --directory-prefix=${WorkingDir}Reference/ https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz	
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
+						wget --directory-prefix=$REPLY/Reference/ https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz	
 						
 				#Unzip the packaged ref panel
 					printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3.tgz -C ${WorkingDir}Reference/
-						tar -xzf ${WorkingDir}Reference/1000GP_Phase3_chrX.tgz -C ${WorkingDir}Reference/
-						${gzip_Exec} -dc < ${WorkingDir}Reference/genetic_map_hg19_withX.txt.gz > ${WorkingDir}Reference/genetic_map_hg19_withX.txt
+						tar -xzf $REPLY/Reference/1000GP_Phase3.tgz -C $REPLY/Reference/
+						tar -xzf $REPLY/Reference/1000GP_Phase3_chrX.tgz -C $REPLY/Reference/
+						${gzip_Exec} -dc < $REPLY/Reference/genetic_map_hg19_withX.txt.gz > $REPLY/Reference/genetic_map_hg19_withX.txt
 				
 				# Since untar makes an additional directory, move all the files from the 1000GP_Phase3 folder and move it into the Ref Directory
 					printf "\n\nCleaning Up \n-------------------\n\n"
-						mv ${WorkingDir}Reference/1000GP_Phase3/* ${WorkingDir}Reference/
+						mv $REPLY/Reference/1000GP_Phase3/* $REPLY/Reference/
 										
 				# Delete the now empty directory and the tgz zipped Ref panel
-					rmdir ${WorkingDir}Reference/1000GP_Phase3/
-					rm ${WorkingDir}Reference/*.tgz
-					rm ${WorkingDir}Reference/*txt.gz
+					rmdir $REPLY/Reference/1000GP_Phase3/
+					rm $REPLY/Reference/*.tgz
+					rm $REPLY/Reference/*txt.gz
 					
 	
 	
@@ -199,18 +199,18 @@ if [ "${DownloadDefaultRefPanel,,}" == "t" ]; then
 				printf "Using a Eagle-Minimac Combo Downloading Necessary Default Ref Files"
 				
 				# Download the Minimac4 mvcf
-					wget --directory-prefix=${WorkingDir}Reference/ ftp://share.sph.umich.edu/minimac3/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz
-					wget --directory-prefix=${WorkingDir}Reference/ https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz	
+					wget --directory-prefix=$REPLY/Reference/ ftp://share.sph.umich.edu/minimac3/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz
+					wget --directory-prefix=$REPLY/Reference/ https://data.broadinstitute.org/alkesgroup/Eagle/downloads/tables/genetic_map_hg19_withX.txt.gz	
 						
 					
 				#Unpack
 				printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
-					tar -xzf ${WorkingDir}Reference/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz -C ${WorkingDir}Reference/
-					${gzip_Exec} -dc < ${WorkingDir}Reference/genetic_map_hg19_withX.txt.gz > ${WorkingDir}Reference/genetic_map_hg19_withX.txt
+					tar -xzf $REPLY/Reference/G1K_P3_M3VCF_FILES_WITH_ESTIMATES.tar.gz -C $REPLY/Reference/
+					${gzip_Exec} -dc < $REPLY/Reference/genetic_map_hg19_withX.txt.gz > $REPLY/Reference/genetic_map_hg19_withX.txt
 			
 				# Remove original .tar.gz Minimac Ref Panel
-					rm ${WorkingDir}Reference/*tar.gz
-					rm ${WorkingDir}Reference/*txt.gz
+					rm $REPLY/Reference/*tar.gz
+					rm $REPLY/Reference/*txt.gz
 	
 			else
 				printf "Invalid Phasing/Imputation Program Combo -- Exiting \n\n"
@@ -265,30 +265,30 @@ if [ "${UseShapeit,,}" == "t" ]; then
 			echo "Pre-Check: Looking in ./Reference For Reference Files "
 			echo "Found the Following Shapeit References for Chromosome ${chr}: "
 		
-			GeneticMap="$(ls ./Reference/ | egrep --ignore-case ".*map.*chr${chr}[^[:digit:]]{1}.*|.*chr${chr}[^[:digit:]]{1}.*map.*")"
+			GeneticMap="$(ls $REPLY/Reference/ | egrep --ignore-case ".*map.*chr${chr}[^[:digit:]]{1}.*|.*chr${chr}[^[:digit:]]{1}.*map.*")"
 				printf "   Genetic Map File: $GeneticMap \n"
-			HapFile="$(ls ./Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*hap\.gz")"
+			HapFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*hap\.gz")"
 				printf "   Haplotpe File: $HapFile \n"
-			LegendFile="$(ls ./Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*legend\.gz")"
+			LegendFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*legend\.gz")"
 				printf "   Legend File: $LegendFile \n \n"	
 
 
 echo "#!/bin/bash
 
 
-cd ${WorkingDir}
+cd $REPLY
 
 # Phase Command to Phase Chromosomes
 	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out -N PChr${chr}_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out -N PChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 			
 
 ${Shapeit2_Exec} \
 --thread ${PhaseThreads} \
---input-bed ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr} \
---input-map ./Reference/${GeneticMap} \
--O ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.gz ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.sample \
---output-log ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.log" > ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+--input-bed $REPLY/${RawData}_oddysseyDat/${RawData}_project/Ody2_${RawData}_PhaseReady.chr${chr} \
+--input-map $REPLY/Reference/${GeneticMap} \
+-O $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.haps.gz $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.sample \
+--output-log $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.log" > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 
 
 			# Toggle that will turn script submission on/off
@@ -301,13 +301,13 @@ ${Shapeit2_Exec} \
 					echo
 					echo Submitting Phasing script to HPC Queue
 					echo
-						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out -N PChr${chr}_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out -N PChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 						sleep 0.2
 				else
 					echo
 					echo Submitting Phasing script to Desktop Queue
 					echo
-						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out 2>&1 &
+						bash $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out 2>&1 &
 			
 				fi
 			fi
@@ -339,30 +339,30 @@ ${Shapeit2_Exec} \
 			echo "Pre-Check: Looking in ./Reference For Reference Files "
 			echo "Found the Following Shapeit References for Chromosome X: "
 		
-			XGeneticMap="$(ls ./Reference/ | egrep --ignore-case ".*map.*${XChromIdentifier}.*|.*${XChromIdentifier}.*map.*")"
+			XGeneticMap="$(ls $REPLY/Reference/ | egrep --ignore-case ".*map.*${XChromIdentifier}.*|.*${XChromIdentifier}.*map.*")"
 				printf "   Genetic Map: $XGeneticMap \n"
-			XHapFile="$(ls ./Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*hap\.gz")"
+			XHapFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*hap\.gz")"
 				printf "   Haplotpe File: $XHapFile \n"
-			XLegendFile="$(ls ./Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*legend\.gz")"
+			XLegendFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*legend\.gz")"
 				printf "   Legend File: $XLegendFile \n \n"
 	
 echo "#!/bin/bash
 
-cd ${WorkingDir}
+cd $REPLY
 
 # Phase Command to Phase X Chromosome
 	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out -N PChr23_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.out -N PChr23_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 
 
 
 ${Shapeit2_Exec} \
 --thread ${PhaseThreads} \
 --chrX \
---input-bed ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr23 \
---input-map ./Reference/${XGeneticMap} \
--O ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23}_Phased.sample \
---output-log ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.log" > ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+--input-bed $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody2_${RawData}_PhaseReady.chr23 \
+--input-map $REPLY/Reference/${XGeneticMap} \
+-O $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps.gz $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23}_Phased.sample \
+--output-log $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.log" > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 	
 	
 		# Toggle that will turn script submission on/off
@@ -375,13 +375,13 @@ ${Shapeit2_Exec} \
 					echo
 					echo Submitting Phasing script to HPC Queue
 					echo
-						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out -N PChr23_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.out -N PChr23_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 						sleep 0.2
 				else
 					echo
 					echo Submitting Phasing script to Desktop Queue
 					echo
-						sh ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out 2>&1 &
+						sh $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject}/Scripts2Shapeit/${RawData}_Chr23_P.sh > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProjectScripts2Shapeit/${RawData}_Chr23_P.out 2>&1 &
 				fi		
 			fi
 	elif [ "${PhaseX,,}" == "f" ]; then
@@ -423,11 +423,11 @@ if [ "${UseEagle,,}" == "t" ]; then
 echo "#!/bin/bash
 
 
-cd ${WorkingDir}
+cd $REPLY
 
 # Phase Command to Phase Chromosomes
 	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out -N PChr${chr}_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out -N PChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 			
 
 ## Execute Phasing without a ref dataset
@@ -438,9 +438,9 @@ printf 'Phase Chr${chr} Using Eagle\n'
 echo ========================================
 printf '\n\n'
 	
-${Eagle2_Exec} --bfile ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr${chr} \
---geneticMapFile=./Reference/${GeneticMap} \
---outPrefix=./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased \
+${Eagle2_Exec} --bfile $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody2_${RawData}_PhaseReady.chr${chr} \
+--geneticMapFile=$REPLY/Reference/${GeneticMap} \
+--outPrefix=$REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased \
 --chrom ${chr} \
 --numThreads ${PhaseThreads}
 
@@ -452,7 +452,7 @@ printf 'Gzip Chr${chr}\n'
 echo ========================================
 printf '\n\n'
 
-${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.gz > ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps" > ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+${gzip_Exec} -dc < $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.haps.gz > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.haps" > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 
 
 			# Toggle that will turn script submission on/off
@@ -465,13 +465,13 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.
 					
 					echo Submitting Phasing script to HPC Queue
 					echo
-						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out -N PChr${chr}_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh
+						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out -N PChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh
 						sleep 0.2
 				else
 					
 					echo Submitting Phasing script to Desktop Queue
 					echo
-						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr${chr}_P.out 2>&1 &
+						bash $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.sh > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr${chr}_P.out 2>&1 &
 			
 				fi
 			fi
@@ -506,24 +506,24 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.
 	
 echo "#!/bin/bash
 
-cd ${WorkingDir}
+cd $REPLY
 
 # Phase Command to Phase X Chromosome
 	# Manual Command to Run:
-	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out -N PChr23_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+	# qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.out -N PChr23_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 			
 
 ## Execute Phasing without a ref dataset
 	
-${Eagle2_Exec} --bfile ./1_Target/${BaseName}/Ody2_${BaseName}_PhaseReady.chr23 \
---geneticMapFile=./Reference/${GeneticMap} \
--O ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.sample \
+${Eagle2_Exec} --bfile '$REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody2_${RawData}_PhaseReady.chr23 \
+--geneticMapFile=$REPLY/Reference/${GeneticMap} \
+-O $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps.gz $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.sample \
 --chrom 23 \
 --numThreads ${PhaseThreads}
 
 #Unzip Phased Output
 
-${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz > ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps" > ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+${gzip_Exec} -dc < $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps.gz > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps" > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 
 
 		# Toggle that will turn script submission on/off
@@ -536,13 +536,13 @@ ${gzip_Exec} -dc < ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz >
 					
 					echo Submitting Phasing script to HPC Queue
 					echo
-						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out -N PChr23_${BaseName} ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh
+						qsub -l nodes=1:ppn=${PhaseThreads},vmem=${Phase_Memory}gb,walltime=${Phase_Walltime} -M ${Email} -m ae -j oe -o $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.out -N PChr23_${RawData} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh
 						sleep 0.2
 				else
 					
 					echo Submitting Phasing script to Desktop Queue
 					echo
-						bash ./2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.sh > ${WorkingDir}2_Phase/${BaseName}/Scripts2Shapeit/${BaseName}_Chr23_P.out 2>&1 &
+						bash $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.sh > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit/${RawData}_Chr23_P.out 2>&1 &
 				fi		
 			fi
 	elif [ "${PhaseX,,}" == "f" ]; then
