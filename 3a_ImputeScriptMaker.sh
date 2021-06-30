@@ -42,13 +42,9 @@
 # Set Working Directory
 # -------------------------------------------------
 echo
-echo Changing to Working Directory
+echo Current Working Directory
 echo ----------------------------------------------
-echo ${WorkingDir}
-echo
-echo
-
-	cd ${WorkingDir}
+echo $REPLY
 
 
 # ======================================================================================================
@@ -74,7 +70,7 @@ if [ "${UseShapeit,,}" == "t" ]; then
 		echo It may take a while to scan all the .out files
 		echo ==============================================
 		echo
-		find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+		find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
 		echo
 		echo ==============================================
 		echo
@@ -95,7 +91,7 @@ if [ "${UseShapeit,,}" == "t" ]; then
 			echo "Outputting more details on failed file/s..."
 			echo ===========================================
 			echo
-			find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+			find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
 			echo
 			echo ===========================================
 		
@@ -161,13 +157,13 @@ if [ "${UseShapeit,,}" == "t" ]; then
 				# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 				# 3,4) Sorts the .out files and subs .out for .sh to get the script
 				# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
-					find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
+					find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
 					
 					# Manually read in scripts that need to be re-run (comment out previous command if you want to use this manual override				
-						#cat ./2_Phase/${BaseName}/Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
+						#cat $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
 				
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-					find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 			
 				# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 					cat ReSubmitPhaseJobs.txt | bash
@@ -189,10 +185,10 @@ if [ "${UseShapeit,,}" == "t" ]; then
 				# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 				# 3,4) Sorts the .out files and subs .out for .sh to get the script
 				# 5) Within .sh should be a manual execution command that starts with 'time ', grep finds the line and saves it to ReSubmitPhaseJobs.txt
-					find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitPhaseJobs.txt
+					find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' > ReSubmitPhaseJobs.txt
 			
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-					find ./2_Phase/${BaseName}/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					find $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 			
 				# Read the file that contains the scripts that need to be re-submitted and submit then via sh to the Linux workstation
 					cat ReSubmitPhaseJobs.txt | bash
@@ -235,15 +231,15 @@ fi
 # Creates the Impute directory and also Lustre Stripes it to accomidate for large file folders (prevents the file folder from completely filling up a drive)
 	
 	printf "\nCreating Imputation Project Folder within Impute Directory \n\n\n"
-		mkdir -p ./3_Impute/${BaseName}
+		mkdir -p $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject
 	
 	# Use Lustre Stripping?
 		if [ "${LustreStrip,,}" == "t" ]; then
-			lfs setstripe -c 5 ./3_Impute/${BaseName}
+			lfs setstripe -c 5 $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject
 		fi
 
-	mkdir -p ./3_Impute/${BaseName}/Scripts2Impute
-	mkdir -p ./3_Impute/${BaseName}/RawImputation
+	mkdir -p $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute
+	mkdir -p $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation
 
 
 # ---------------------------------------------
@@ -254,7 +250,7 @@ fi
 	# LEGACY Format Shapeit Sample File for Use with Impute	
 
 	#Get a single sample file from the Phase folder
-	#SHAPEIT_SAMPLE_FILE="$(ls ./2_Phase/${BaseName}/*.sample | head -1)"
+	#SHAPEIT_SAMPLE_FILE="$(ls $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject*.sample | head -1)"
 	
 	#echo
 	#echo Modifying Sample File: 
@@ -262,10 +258,10 @@ fi
 	#echo to be used with Impute4
 	#echo -----------------------------------
 	#echo
-	#awk 'BEGIN{FS=" "}{print $1,$2,$3,$6}' OFS=' ' $SHAPEIT_SAMPLE_FILE > ./3_Impute/${BaseName}/${BaseName}.sample
+	#awk 'BEGIN{FS=" "}{print $1,$2,$3,$6}' OFS=' ' $SHAPEIT_SAMPLE_FILE > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample
 
 	#Get a QC2 .fam file from the Target folder and format it for Minimac/Impute
-		PLINK_FAM_FILE="$(ls ./1_Target/${BaseName}/*QC2.fam | head -1)"
+		PLINK_FAM_FILE="$(ls $REPLY/${RawData}_oddysseyDat/${RawData}_project/*QC2.fam | head -1)"
 		
 		echo
 		echo Modifying Fam File: 
@@ -274,13 +270,13 @@ fi
 		echo -----------------------------------
 		echo
 			# Cutnecessary Columns
-				awk 'BEGIN{FS=" "}{print $1,$2,$4,$5}' OFS=' ' $PLINK_FAM_FILE > ./3_Impute/${BaseName}/${BaseName}.sampleTEMP
+				awk 'BEGIN{FS=" "}{print $1,$2,$4,$5}' OFS=' ' $PLINK_FAM_FILE > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sampleTEMP
 
 			# Format the Plink QC2 .fam file for Imputation via Impute
-				echo -e "ID_1 ID_2 missing sex\n0 0 0 D" | cat - ./3_Impute/${BaseName}/${BaseName}.sampleTEMP > ./3_Impute/${BaseName}/${BaseName}.sample
+				echo -e "ID_1 ID_2 missing sex\n0 0 0 D" | cat - $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sampleTEMP > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample
 			
 			# Remove the Temp File
-				rm ./3_Impute/${BaseName}/${BaseName}.sampleTEMP
+				rm $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sampleTEMP
 
 
 ## --------------------------------------------------------------------------------------
@@ -305,18 +301,18 @@ if [ "${UseImpute,,}" == "t" ]; then
 			echo
 	
 			#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
-				echo "Looking in ./Reference For Reference Files "
+				echo "Looking in ${REPLY}/Reference For Reference Files "
 				echo "Found the following references for Chromosome ${chr}: "
 	
-				GeneticMap="$(ls ./Reference/ | egrep --ignore-case ".*map.*chr${chr}[^[:digit:]]{1}.*|.*chr${chr}[^[:digit:]]{1}.*map.*")"
+				GeneticMap="$(ls $REPLY/Reference/ | egrep --ignore-case ".*map.*chr${chr}[^[:digit:]]{1}.*|.*chr${chr}[^[:digit:]]{1}.*map.*")"
 				printf "   Genetic Map File: $GeneticMap \n"
-				HapFile="$(ls ./Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*hap\.gz")"
+				HapFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*hap\.gz")"
 				printf "   Haplotpe File: $HapFile \n"
-				LegendFile="$(ls ./Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*legend\.gz")"
+				LegendFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*chr${chr}[^[:digit:]]{1}.*legend\.gz")"
 				printf "   Legend File: $LegendFile \n\n"	
 	
 			# Check to see if all reference files + genetic map exist
-			if [[ -f ./Reference/${GeneticMap} && -f ./Reference/${HapFile} && -f ./Reference/${LegendFile} ]] ; then
+			if [[ -f $REPLY/Reference/${GeneticMap} && -f $REPLY/Reference/${HapFile} && -f $REPLY/Reference/${LegendFile} ]] ; then
 			
 				# Create bash files to segment chromosomes by position and create imputation scripts
 				echo
@@ -328,7 +324,7 @@ if [ "${UseImpute,,}" == "t" ]; then
 				cd ${WorkingDir}
 	
 				# Figure out how many chunks there are per chromosome by doing some algebra on the genetic map file
-				maxPos=$(gawk '$1!="position" {print $1}' ./Reference/${GeneticMap} | sort -n | tail -n 1);
+				maxPos=$(gawk '$1!="position" {print $1}' $REPLY/Reference/${GeneticMap} | sort -n | tail -n 1);
 				nrChunk=$(expr ${maxPos} "/" 5000000);
 				nrChunk2=$(expr ${nrChunk} "+" 1);
 				start="0";
@@ -346,7 +342,7 @@ echo "#!/bin/bash
 cd ${WorkingDir}
 
 # Impute Manual Command Used to re-run autosomal imputation in case of failure
-	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.out -N IChr${chr}_ck${chunk}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.sh
 
 
 # Impute 4 Automatic Command -- Currently enabled to impute the autosomal chromosomes
@@ -358,27 +354,27 @@ echo ========================================
 printf '\n\n'
 
 ${Impute4_Exec} \
--g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.gz \
--s ./3_Impute/${BaseName}/${BaseName}.sample \
--m ./Reference/${GeneticMap} \
--h ./Reference/${HapFile} \
--l ./Reference/${LegendFile} \
+-g $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.haps.gz \
+-s $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample \
+-m $REPLY/Reference/${GeneticMap} \
+-h $REPLY/Reference/${HapFile} \
+-l $REPLY/Reference/${LegendFile} \
 -int ${startchr} ${endchr} \
 -maf_align -Ne 20000 \
--o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}
+-o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr${chr}_Chunk${chunk}
 
 # Legacy Impute 2 Automatic Command -- Currently disabled to impute the autosomal chromosomes
 	# Remove the hashtag from the Impute2 command below and comment out (include a hastag before) the Impute4 command above to run Impute2 for the autosomal chromosomes
 
 #${Impute2_Exec} \
--known_haps_g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.haps.gz \
--sample_g ./3_Impute/${BaseName}/${BaseName}.sample \
--m ./Reference/${GeneticMap} \
--h ./Reference/${HapFile} \
--l ./Reference/${LegendFile} \
+-known_haps_g $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.haps.gz \
+-sample_g $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample \
+-m $REPLY/Reference/${GeneticMap} \
+-h $REPLY/Reference/${HapFile} \
+-l $REPLY/Reference/${LegendFile} \
 -int ${startchr} ${endchr} \
 -Ne 20000 \
--o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}_Chunk${chunk}" > ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+-o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr${chr}_Chunk${chunk}" > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.sh
 
 
 					start=${endchr};
@@ -394,13 +390,13 @@ ${Impute4_Exec} \
 							echo
 							echo Submitting Impute script to HPC Queue
 							echo
-							qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out -N IChr${chr}_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh
+							qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.out -N IChr${chr}_ck${chunk}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.sh
 						else
 			
 							echo
 							echo Submitting Impute script to Desktop Queue
 							echo
-							bash ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_Chunk${chunk}_${BaseName}_I.out 2>&1 &
+							bash $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.sh > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_Chunk${chunk}_${RawData}_I.out 2>&1 &
 	
 				
 						fi	
@@ -429,18 +425,18 @@ ${Impute4_Exec} \
 	
 		# Search the reference directory for the X chromosome specific reference map, legend, and hap files and create their respective variables on the fly
 		
-			echo "Looking in ./Reference For Reference Files "
+			echo "Looking in $REPLY/Reference For Reference Files "
 			echo "Found the following references for Chromosome X: "
 	
-			XGeneticMap="$(ls ./Reference/ | egrep --ignore-case ".*map.*${XChromIdentifier}.*|.*${XChromIdentifier}.*map.*")"
+			XGeneticMap="$(ls $REPLY/Reference/ | egrep --ignore-case ".*map.*${XChromIdentifier}.*|.*${XChromIdentifier}.*map.*")"
 				printf "   Genetic Map: $XGeneticMap \n"
-			XHapFile="$(ls ./Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*hap\.gz")"
+			XHapFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*hap\.gz")"
 				printf "   Haplotpe File: $XHapFile \n"
-			XLegendFile="$(ls ./Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*legend\.gz")"
+			XLegendFile="$(ls $REPLY/Reference/ | egrep --ignore-case ".*${XChromIdentifier}.*legend\.gz")"
 				printf "   Legend File: $XLegendFile \n \n"
 	
 		# Check to see if all reference files + genetic map exist
-		if [[ -f ./Reference/${XGeneticMap} && -f ./Reference/${XHapFile} && -f ./Reference/${XLegendFile} ]] ; then
+		if [[ -f $REPLY/Reference/${XGeneticMap} && -f $REPLY/Reference/${XHapFile} && -f $REPLY/Reference/${XLegendFile} ]] ; then
 			
 	
 			# Create bash files to segment chromosomes by position and create imputation scripts
@@ -452,7 +448,7 @@ ${Impute4_Exec} \
 		
 			## Figure out how many chunks there are on the X Chromosome by doing some algebra on the genetic map file
 			#----------------------------------------------------------------------------------------------------------
-			maxPos=$(gawk '$1!="position" {print $1}' ./Reference/${XGeneticMap} | sort -n | tail -n 1);
+			maxPos=$(gawk '$1!="position" {print $1}' $REPLY/Reference/${XGeneticMap} | sort -n | tail -n 1);
 			nrChunk=$(expr ${maxPos} "/" 5000000);
 			nrChunk2=$(expr ${nrChunk} "+" 1);
 			start="0";
@@ -469,7 +465,7 @@ echo "#!/bin/bash
 cd ${WorkingDir}
 
 # Impute Manual Command Used to re-run X chromosome imputation in case of failure
-	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.out -N IChr23_ck${chunk}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.sh
 
 # Impute 4 X chromosome Automatic Command -- Currently enabled to impute the X chromosome
 
@@ -481,14 +477,14 @@ printf '\n\n'
 
 ${Impute4_Exec} \
 -chrX \
--g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps.gz \
--s ./3_Impute/${BaseName}/${BaseName}.sample \
--m ./Reference/${XGeneticMap} \
--h ./Reference/${XHapFile} \
--l ./Reference/${XLegendFile} \
+-g $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps.gz \
+-s $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample \
+-m $REPLY/Reference/${XGeneticMap} \
+-h $REPLY/Reference/${XHapFile} \
+-l $REPLY/Reference/${XLegendFile} \
 -int ${startchr} ${endchr} \
 -maf_align \
--o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}
+-o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr23_Chunk${chunk}
 
 
 # Legacy Impute 2 Automatic Command -- Currently disabled to impute the X chromosome
@@ -496,13 +492,13 @@ ${Impute4_Exec} \
 
 #${Impute2_Exec} \
 -chrX \
--known_haps_g ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.haps \
--sample_g ./3_Impute/${BaseName}/${BaseName}.sample \
--m ./Reference/${XGeneticMap} \
--h ./Reference/${XHapFile} \
--l ./Reference/${XLegendFile} \
+-known_haps_g $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.haps \
+-sample_g $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/${RawData}.sample \
+-m $REPLY/Reference/${XGeneticMap} \
+-h $REPLY/Reference/${XHapFile} \
+-l $REPLY/Reference/${XLegendFile} \
 -int ${startchr} ${endchr} \
--o ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23_Chunk${chunk}.gen" > ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+-o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr23_Chunk${chunk}.gen" > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.sh
 
 				start=${endchr};
 		
@@ -516,13 +512,13 @@ ${Impute4_Exec} \
 						echo
 						echo Submitting Impute script to HPC Queue
 						echo
-						qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out -N IChr23_ck${chunk}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh
+						qsub -l nodes=1:ppn=1,vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.out -N IChr23_ck${chunk}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.sh
 					elif [ "${HPS_Submit,,}" == "f" ]; then
 					
 						echo
 						echo Submitting Impute script to Desktop Queue
 						echo
-						bash ./3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_Chunk${chunk}_${BaseName}_I.out 2>&1 &
+						bash $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.sh > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_Chunk${chunk}_${RawData}_I.out 2>&1 &
 	
 					else
 					
@@ -576,14 +572,14 @@ if [ "${UseMinimac,,}" == "t" ]; then
 			echo -----------------------------------
 				
 			#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
-				echo "Looking in ./Reference For Minimac .m3vcf Reference Files "
+				echo "Looking in ${REPLY}/Reference For Minimac .m3vcf Reference Files "
 				echo "Found the following references for Chromosome ${chr}: "
 	
-				MiniRef="$(ls ./Reference/ | egrep --ignore-case "^${chr}[^[:digit:]]{1}.*\.m3vcf\.gz")"
+				MiniRef="$(ls $REPLY/Reference/ | egrep --ignore-case "^${chr}[^[:digit:]]{1}.*\.m3vcf\.gz")"
 				printf "   $MiniRef \n"
 
 			# Check to see if all reference files + genetic map exist
-				if [[ -f ./Reference/${MiniRef} ]] ; then
+				if [[ -f $REPLY/Reference/${MiniRef} ]] ; then
 			
 					# Create bash files to segment chromosomes by position and create imputation scripts
 						echo
@@ -593,14 +589,14 @@ if [ "${UseMinimac,,}" == "t" ]; then
 						echo	
 			
 					# Change to Working Directory
-						cd ${WorkingDir}
+						cd $REPLY
 		
 echo "#!/bin/bash
 
-cd ${WorkingDir}
+cd $REPLY
 
 # Minimac Manual Command Used to re-run autosomal imputation in case of failure
-	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.out -N IChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.sh
 
 # Convert Chr Phased haps to VCF
 
@@ -610,7 +606,7 @@ printf 'Convert Chr${chr} Phased .haps to .vcf\n'
 echo ========================================
 printf '\n\n'
 
-${Shapeit2_Exec} -convert --input-haps ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased --output-vcf ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz --output-log ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.vcf.log.temp
+${Shapeit2_Exec} -convert --input-haps $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased --output-vcf $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.vcf.gz --output-log $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.vcf.log.temp
 
 
 # Minimac Command
@@ -624,9 +620,9 @@ printf '\n\n'
 ${Minimac4_Exec} \
 --cpus $ImputeThreads \
 --allTypedSites --minRatio 0.00001 \
---refHaps ./Reference/${MiniRef} \
---haps ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz \
---prefix ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr${chr}" > ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
+--refHaps $REPLY/Reference/${MiniRef} \
+--haps $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr${chr}_Phased.vcf.gz \
+--prefix $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr${chr}" > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.sh
 	
 					# Toggle that will turn script submission on/off
 					# -----------------------------------------------
@@ -639,13 +635,13 @@ ${Minimac4_Exec} \
 							echo
 							echo Submitting Impute script to HPC Queue
 							echo
-							qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out -N IChr${chr}_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
+							qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.out -N IChr${chr}_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.sh
 						else
 					
 							echo
 							echo Submitting Impute script to Desktop Queue
 							echo
-							bash ./3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr${chr}_${BaseName}_I.out 2>&1 &
+							bash $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.sh > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr${chr}_${RawData}_I.out 2>&1 &
 					
 					
 						fi	
@@ -672,14 +668,14 @@ ${Minimac4_Exec} \
 		
 		
 		#Search the reference directory for the chromosome specific reference map, legend, and hap files and create their respective variables on the fly
-			echo "Looking in ./Reference For Minimac .m3vcf Reference Files "
+			echo "Looking in ${REPLY}/Reference For Minimac .m3vcf Reference Files "
 			echo "Found the following references for Chromosome X: "
 	
-			XMiniRef="$(ls ./Reference/ | egrep --ignore-case "^${XChromIdentifier}[^[:digit:]]{1}.*\.m3vcf\.gz")"
+			XMiniRef="$(ls $REPLY/Reference/ | egrep --ignore-case "^${XChromIdentifier}[^[:digit:]]{1}.*\.m3vcf\.gz")"
 			printf "   Minimac Ref File: $XMiniRef \n"
 
 		# Check to see if all reference files + genetic map exist
-		if [[ -f ./Reference/${XMiniRef} ]] ; then
+		if [[ -f $REPLY/Reference/${XMiniRef} ]] ; then
 			
 			# Create bash files to segment chromosomes by position and create imputation scripts
 				echo
@@ -695,7 +691,7 @@ echo "#!/bin/bash
 cd ${WorkingDir}
 
 # Minimac Manual Command Used to re-run X chromosome imputation in case of failure
-	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
+	# qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.out -N IChr23_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.sh
 
 # Convert Chr Phased haps to VCF
 
@@ -706,7 +702,7 @@ cd ${WorkingDir}
 	echo ========================================
 	printf '\n\n'
 
-	${Shapeit2_Exec} -convert --input-haps ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased --output-vcf ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.temp --output-log ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.log.temp
+	${Shapeit2_Exec} -convert --input-haps $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased --output-vcf $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.temp --output-log $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.log.temp
 
 # Format the VCF.gz so that Chr23 is XChromIdentifier
 	printf '\n\n'	
@@ -716,19 +712,19 @@ cd ${WorkingDir}
 	printf '\n\n'
 	
 	# Get the header # rows from the VCF
-		grep -w \"#\" ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.temp > ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf
+		grep -w \"#\" $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.temp > $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf
 	
 	# For some readon the column header row isn't taken so specifically ask for it	
-		grep -w \"CHROM\" ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf
+		grep -w \"CHROM\" $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.temp >> $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf
 	
 	#Get the rest of the VCF except this time replace 23 with 'X'
-		awk '/^[^#]/ { first = \$1; \$1 = \"X\"; print \$0}' OFS='\t' ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf
+		awk '/^[^#]/ { first = \$1; \$1 = \"X\"; print \$0}' OFS='\t' $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.temp >> $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf
 		
 	# Remove the Temp file
-		rm ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.temp
+		rm $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.temp
 
 	# Gzip the output 
-		${gzip_Exec} ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf
+		${gzip_Exec} $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf
 
 
 # Minimac Command
@@ -743,9 +739,9 @@ cd ${WorkingDir}
 	${Minimac4_Exec} \
 	--cpus $ImputeThreads \
 	--allTypedSites --minRatio 0.00001 \
-	--refHaps ./Reference/${XMiniRef} \
-	--haps ./2_Phase/${BaseName}/Ody3_${BaseName}_Chr23_Phased.vcf.gz \
-	--prefix ./3_Impute/${BaseName}/RawImputation/Ody4_${BaseName}_Chr23" > ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
+	--refHaps $REPLY/Reference/${XMiniRef} \
+	--haps $REPLY/${RawData}_oddysseyData/Phase/${RawData}_phaseProject/Ody3_${RawData}_Chr23_Phased.vcf.gz \
+	--prefix $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/RawImputation/Ody4_${RawData}_Chr23" > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.sh
     
 		
 			# Toggle that will turn script submission on/off
@@ -758,14 +754,14 @@ cd ${WorkingDir}
 					echo
 					echo Submitting Impute script to HPC Queue
 					echo
-					qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out -N IChr23_${BaseName} ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh
+					qsub -l nodes=1:ppn=${ImputeThreads},vmem=${Impute_Memory}gb,walltime=${Impute_Walltime} -M ${Email} -m a -j oe -o $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.out -N IChr23_${RawData} $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.sh
 				
 				elif [ "${HPS_Submit,,}" == "f" ]; then
 				
 					echo
 					echo Submitting Impute script to Desktop Queue
 					echo
-					bash ./3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.sh > ${WorkingDir}3_Impute/${BaseName}/Scripts2Impute/Chr23_${BaseName}_I.out 2>&1 &
+					bash $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.sh > $REPLY/${RawData}_oddysseyData/Impute/${RawData}_imputeProject/Scripts2Impute/Chr23_${RawData}_I.out 2>&1 &
 	
 				else
 				
