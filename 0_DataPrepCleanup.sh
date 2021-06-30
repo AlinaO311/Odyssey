@@ -219,9 +219,9 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 		
-		mkdir -p $REPLY/${RawData}*/${RawData}_Step0out/TargetData
+		mkdir -p $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData
 		
-		${Plink_Exec} --bfile $REPLY/${RawData}*/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex $REPLY/${RawData}_oddysseyData/${RawData}.fam 3 --make-bed --out $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
+		${Plink_Exec} --bfile $REPLY/${RawData}_oddysseyData/TEMP/DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex $REPLY/${RawData}_oddysseyData/${RawData}.fam 3 --make-bed --out $REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData/DataFixStep5_${RawData}-PhaseReady
 		
 
 		echo
