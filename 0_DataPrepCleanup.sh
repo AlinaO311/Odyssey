@@ -309,7 +309,7 @@ if [ "${DataVisualization,,}" == "t" ]; then
 
 	# Executes the Rscript to analyze and visualize the GWAS analysis
 
-		Arg6="$REPLY/${RawData}/${RawData}_Step0out/TargetData";
+		Arg6="$REPLY/${RawData}_oddysseyData/${RawData}_Step0out/TargetData";
 		Arg7="${X11}";
 
 		${Rscript} ./1_Target/.1_PreGWAS-QC.R $Arg6 $Arg7
