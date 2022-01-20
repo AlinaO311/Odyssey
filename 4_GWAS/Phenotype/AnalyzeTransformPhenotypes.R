@@ -34,15 +34,12 @@
 
 #Input the File Path of the Phenotype File you Want to Analyze
 	#PhenotypeFilePath <- file.path(file.choose())
-	PhenotypeFilePath <- readline("Specify the full path of the Phenotype File you Want to Check: ")
-	PhenotypeFilePath <- as.character(PhenotypeFilePath , ",")
-
+	PhenotypeFilePath <- '/path/to/PhenoFile/GWAS/Phenotype'
 
 #Set Current Working Directory
 
 	#setwd(choose.dir())
-   	WorkingDir <- readline("Specify the full directory path of where your phenotype file is located: ")
-	WorkingDir <- as.character(WorkingDir , ",")
+   	WorkingDir <- '/path/to/originalData/'
 setwd(WorkingDir)
 
 

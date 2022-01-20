@@ -53,6 +53,203 @@ echo
 #  ================================================================
 # ==================================================================
 
+if [ "${UseImpute,,}" == "t" ]; then
+	# Perform Error Analysis on Phasing Step -- grep looks for .out files containing 'Killed', 'Aborted', 'segmentation', or 'error'
+	# -----------------------------
+	if [ "${ImputationErrorAnalysis,,}" == "t" ]; then
+
+		echo
+		echo --------------------------------------------------------
+		echo Performing Error Analysis on Imputation Jobs:
+		echo --------------------------------------------------------
+		echo
+		echo Note: Some errors are caused by no SNPs being in the imputed area -- this is not really an issue -- skip the segment
+		echo Note: Other errors are listed as segmentation faults -- memory access issues -- try re-running or use Impute2 and re-run
+		echo
+		echo
+		echo Imputation jobs that should be reviewed are listed:
+		echo It may take a while to scan all the .out files
+		echo ==============================================
+		echo
+		find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+		echo
+		echo ==============================================
+		echo
+
+		# Examine the failed files?
+		echo
+		echo "The files listed above appeared to have failed."
+		echo "Would you like more details on why they failed (this will print the line that contains the error for each failed file)?"
+		echo "(y/n)?"
+		echo --------------------------------------------------
+		read UserInput1
+		echo
+		echo
+
+		if [ "${UserInput1,,}" == "y" ]; then
+
+			echo
+			echo "Outputting more details on failed file/s..."
+			echo ===========================================
+			echo
+			find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+			echo
+			echo ===========================================
+
+		elif [ "${UserInput1,,}" == "n" ]; then
+
+			echo "Alright, will not output more details on failed file/s"
+			echo =========================================================
+			echo
+
+		else
+			echo "Input not recognized -- specify either 'y' or 'n' -- exiting Error Analysis"
+			echo ================================================================================
+			echo
+		fi
+
+		# Re-submit the failed scripts
+		echo
+		echo "Would you like to resubmit the failed scripts?"
+		echo "Script/s will be submitted to an HPS if specified in Conf.conf otherwise will submit via a simple 'sh' command"
+		echo "(y/n)?"
+		echo --------------------------------------------------
+		read UserInput2
+		echo
+		echo
+
+		if [ "${UserInput2,,}" == "y" ]; then
+			# Specify text document of failed scripts to re-run; manual script re-submission
+			echo
+			echo "Normally ALL the failed scripts will be re-submitted"
+			echo "However, you can provide a text doc that contains a list of the scripts you would like re-submitted"
+			echo "Would you prefer to manually provide this list?"
+			echo "Note: The file should contain the full path to the automatically created scripts you want re-submitted"
+			echo "Note: Each script should be listed on a new line of the text document"
+			echo "(y/n)?"
+			echo --------------------------------------------------
+			read UserInput3
+			echo
+			echo
+			if [ "${UserInput3,,}" == "y" ]; then
+				echo "You Said Yes to Manual Script Submission So Please Provide the Full Path to the Re-Submission Text Doc"
+				read UserInput4
+				echo "Using Text Doc: ${UserInput4} for manual script submission"
+			elif [ "${UserInput3}" == "n" ]; then
+				echo
+			else
+				echo "User Input not recognized -- please specify 'y' or 'n' -- ignoring input"
+			fi
+
+			if [ "${HPS_Submit,,}" == "t" ]; then
+				echo
+				echo Re-Submitting Failed Scripts to HPS...
+				echo ===========================================
+				echo
+				if [ "${UserInput3,,}" == "y" ]; then
+					echo "Manually reading in scripts to re-submit from $UserInput4"
+
+					# Manually read in scripts that need to be re-run
+					cat $UserInput4 | sort -V | xargs grep -r 'qsub' | sed 's/.*# //' >ReSubmitImputeJobs.txt
+
+					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
+					find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+
+					# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
+					cat ReSubmitImputeJobs.txt | bash
+					# Remove ReSubmitJobs.txt
+					rm -f ReSubmitImputeJobs.txt
+					echo
+					echo ===========================================
+					echo
+				elif [ "${UserInput3,,}" == "n" ]; then
+					echo "Looking up all failed scripts from .out files for re-submission"
+					# The following line does a lot:
+					# 1) looks in the script directory that also contains output logs
+					# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
+					# 3,4) Sorts the .out files and subs .out for .sh to get the script
+					# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
+					find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' >ReSubmitImputeJobs.txt
+					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
+					find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
+					cat ReSubmitImputeJobs.txt | bash
+					# Remove ReSubmitJobs.txt
+					rm -f ReSubmitImputeJobs.txt
+					echo
+					echo ===========================================
+					echo
+				else
+					echo
+					echo "User Input not recognized -- please specify 'y' or 'n'"
+					echo "Exiting Script Re-Submission"
+					echo
+				fi
+
+			else
+				echo
+				echo Re-Submitting Failed Scripts to Desktop...
+				echo ===========================================
+				echo
+				if [ "${UserInput3,,}" == "y" ]; then
+					echo "Manually reading in scripts to re-submit from $UserInput4"
+					# Manually read in scripts that need to be re-run
+					cat $UserInput4 | sort -V | xargs grep -r 'qsub' | sed 's/.*# //' >ReSubmitImputeJobs.txt
+					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
+					find /Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
+					cat ReSubmitImputeJobs.txt | sh
+					# Remove ReSubmitJobs.txt
+					rm -f ReSubmitImputeJobs.txt
+					echo
+					echo ===========================================
+					echo
+				elif [ "${UserInput3,,}" == "n" ]; then
+					# The following line does a lot:
+					# 1) looks in the script directory that also contains output
+					# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
+					# 3,4) Sorts the .out files and subs .out for .sh to get the script
+					# 5) Within .sh should be a manual execution command that starts with 'time ', grep finds the line and saves it to ReSubmitPhaseJobs.txt
+					find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' >ReSubmitImputeJobs.txt
+					# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
+					find ${BaseName}_Imputation/Scripts2Impute -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+					# Read the file that contains the scripts that need to be re-submitted and submit then via sh to the Linux workstation
+					cat ReSubmitImputeJobs.txt | sh
+					# Remove ReSubmitJobs.txt
+					rm -f ReSubmitImputeJobs.txt
+					echo
+					echo ===========================================
+					echo
+				else
+					echo
+					echo "User Input not recognized -- please specify 'y' or 'n'"
+					echo "Exiting Script Re-Submission"
+					echo
+				fi
+			fi
+		elif [ "${UserInput2,,}" == "n" ]; then
+
+			echo "Alright, will not Re-Submit Failed Script/s"
+			echo ==============================================
+			echo
+			echo
+
+		else
+			echo "Input Not Recognized -- Specify Either 'yes' or 'no' -- Exiting Re-Submission"
+			echo ==============================================================================
+			echo
+			echo
+
+		fi
+	elif [ "${ImputationErrorAnalysis,,}" == "f" ]; then
+		echo
+	else
+		echo
+		echo User Input Not Recognized -- please specify T or F in Conf.conf
+		echo
+	fi
+fi
+
 if [ "${UseMinimac,,}" == "t" ]; then
 	echo
 	echo
