@@ -128,25 +128,29 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 		# try to run original code
-		output=$(${Plink_Exec} --bfile ./0_DataPrepModule/PLACE_DATA_2B_FIXED_HERE/$RawData --recode vcf --out DataFixStep1_${RawData} 2&>1) #original command
-		ret=$?
-		if [[ $ret -eq 0 ]]; then 
+		command=$(${Plink_Exec} --bfile ./0_DataPrepModule/PLACE_DATA_2B_FIXED_HERE/$RawData --recode vcf --out DataFixStep1_${RawData} 2&>1) #original command
+		retC1=$?
+		if [[ $retC1 -eq 0 ]]; then 
 			${Plink_Exec} --bfile ./0_DataPrepModule/PLACE_DATA_2B_FIXED_HERE/$RawData --recode vcf --out DataFixStep1_${RawData} #run original command if no error
 		else # if some error code
 			echo 
 			## for split chr plink 1.9
 			## switch for 2.0, need pgen instead to sort for to make-bed   ## switch to export either the fixed split chr in *bgen format or recode to vcf from pgen format
 			echo
-			if [[ $output == *'Error'* ]]; then 
+			if [[ $command == *'Error'* ]]; then 
 				${Plink2_Exec} --bfile $RawData --export bcf-4.2 --out DataFixStep1_${RawData}  ##try first alternative with plink2
 			elif [[ $(${Plink2_Exec} --bfile $RawData --export bcf-4.2 --out DataFixStep1_${RawData} 2&>1) == *'Error'* ]]; then 
-				(${Plink2_Exec} --bfile $RawData --keep-allele-order --fa $oddysseyPath/0_DataPrepModule/RefAnnotationData/human_g1k_v37.fasta --ref-from-fa --make-bed --out ${RawData}_chrFix 
-			elif [[ $(   2&>1) == *'Error'* ]]; then 
-				${Plink2_Exec} --bfile $RawData --make-pgen --sort-vars --out ${RawData}_chrSort && 
-				${Plink2_Exec} --pfile ${RawData}_chrSort --make-bed --out ${RawData}_chrFix) &&
+				command2 = $( ${Plink2_Exec} --bfile $RawData --keep-allele-order --fa $oddysseyPath/0_DataPrepModule/RefAnnotationData/human_g1k_v37.fasta --ref-from-fa --make-bed --out ${RawData}_chrFix &&
+				${Plink_Exec} --bfile ${RawData}_chrFix --recode vcf --out DataFixStep1_${RawData} 2&>1)
+				retC2=$? 
+			elif [[ $command  == *'Error'* ]]; then 
+				${Plink2_Exec} --bfile ${RawData} --make-pgen --sort-vars --out ${RawData}_chrSort && 
+				${Plink2_Exec} --pfile ${RawData}_chrSort --make-bed --out ${RawData}_chrFix &&
 				(${Plink2_Exec} --bfile ${RawData} --export vcf --id-delim '_' --out DataFixStep1_${RawData} || 
 				${Plink2_Exec} --pfile ${RawData}_chrSort --keep-allele-order --export vcf --id-delim '_' --out DataFixStep1_${RawData})
-			echo
+			    printf "\n\nStep 1 Done!\n"
+			else 
+				echo 'Check .log file for error'
 			fi
 		fi
 		cp DataFix* TEMP && cp Data* TargetData
@@ -157,13 +161,11 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo ----------------------------------------------
 		echo
 		echo
-        if [[ $ret -eq 0 ]]; then #if original command didnt work, try next occurring original command
+        if [[ $retC1 -eq 0 ]]; then #if original command didnt work, try next occurring original command
         	${bcftools} annotate -Ob --rename-chrs $oddysseyPath/0_DataPrepModule/RefAnnotationData/Plink*.txt DataFixStep1_${RawData}.vcf >DataFixStep1_${RawData}.bcf # if original command gave no error, run next original command
         else
-        	if [[ $output == *'Error'* ]]; then ## try for alternative command
+        	if [[ $command == *'Error'* ]]; then ## try for alternative command
         	${bcftools} index DataFixStep1_${RawData}.vcf.bgz && ${bcftools} convert -Ou DataFixStep1_${RawData}.vcf.bgz >DataFixStep1_${RawData}.bcf
-
-		
 		cp DataFix* TargetData
 		printf "\n\nStep 1 Done!\n"
 	fi
@@ -208,34 +210,46 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		# Sort the BCF output
 		printf "\n\nSorting the BCF output since fixing it may have made it unsorted \n"
 		echo ----------------------------------------------
-
-		(
-			${bcftools} view -h DataFixStep2_${RawData}-RefFixed.bcf
-			${bcftools} view -H DataFixStep2_${RawData}-RefFixed.bcf | sort -k1,1d -k2,2n
-		) | ${bcftools} view -Ob -o DataFixStep3_${RawData}-RefFixedSorted.bcf
-
-		cp DataFixStep* ${dataPath}/TEMP/ && cp DataFixStep* ${dataPath}/TargetData
-
 		printf "Done \n\n\n"
 
+		if [[  $retC1 -eq 0 ]]; then
+			(
+			${bcftools} view -h DataFixStep2_${RawData}-RefFixed.bcf
+			${bcftools} view -H DataFixStep2_${RawData}-RefFixed.bcf | sort -k1,1d -k2,2n
+			) | ${bcftools} view -Ob -o DataFixStep3_${RawData}-RefFixedSorted.bcf
+		else 
+			if [[  $command == *'Error'* ]]; then
+				${Plink2_Exec} --bcf DataFixStep2_${RawData}-RefFixedSorted.bcf --make-bed --out DataFixStep3_${RawData}-RefFixSorted
+			else
+				echo 
+			fi
+		fi
+
+		cp DataFixStep* ${dataPath}/TEMP/ && cp DataFixStep* ${dataPath}/TargetData
+		
 		# Convert BCF back into Plink .bed/.bim/.fam for Shapeit2 Phasing
 		printf "\n\nConverting Fixed and Sorted BCF back into Plink .bed/.bim/.fam \n"
 		echo ----------------------------------------------
 		echo
 		echo
-
-		${Plink2_Exec} --bcf DataFixStep3_${RawData}-RefFixedSorted.bcf --make-bed --out DataFixStep3_${RawData}-RefFixSorted
+		if [[  $retC1 -eq 0 ]]; then
+			${Plink_Exec} --bcf DataFixStep3_${RawData}-RefFixedSorted.bcf --make-bed --out DataFixStep3_${RawData}-RefFixSorted
+		else
+			if [[  $command == *'Error'* ]]; then
+				${Plink2_Exec} --bcf DataFixStep2_${RawData}-RefFixedSorted.bcf --make-bed --out DataFixStep3_${RawData}-RefFixSorted
+			else
+				echo 'Check .log file for error'
+			fi
+		fi
 
 		cp DataFixStep* ${dataPath}/TEMP/ && cp DataFixStep* ${dataPath}/TargetData
-
 		# Finally Remove any positional duplicates
 		# i.e. same position and alleles, but differently named variants since Shapeit will not tolerate these
-
 		printf "\n\nFinding Positional and Allelic Duplicates \n"
 		echo ----------------------------------------------
 		echo
 		echo
-
+		${Plink_Exec} --bfile DataFixStep3_${RawData}-RefFixSorted --list-duplicate-vars ids-only suppress-first --out Dups2Remove ||
 		${Plink2_Exec} --bfile DataFixStep3_${RawData}-RefFixSorted --list-duplicate-vars ids-only suppress-first --out Dups2Remove
 
 		cp Dups2Remove* ${dataPath}/TEMP/ && cp *log ${dataPath}/TargetData
@@ -248,7 +262,27 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 
-		${Plink2_Exec} --bfile DataFixStep3_${RawData}-RefFixSorted --exclude Dups2Remove.dupvar --make-bed --out DataFixStep4_${RawData}-RefFixSortedNoDups
+		echo
+		echo "Would you like to continue with plink or plink2?"
+		echo "(y/n)?"
+		echo --------------------------------------------------
+		read UserInput1
+		echo
+		echo
+
+		if [ "${UserInput1}" == "plink" ]; then
+			${Plink_Exec} --bfile DataFixStep3_${RawData}-RefFixSorted --exclude Dups2Remove.dupvar --make-bed --out DataFixStep4_${RawData}-RefFixSortedNoDups || 
+		else 
+			if [ "${UserInput1}" == "plink2" ]; then
+				echo "Continuing with plink2 /n"
+				echo =========================================================
+				echo ${Plink2_Exec} --bfile DataFixStep3_${RawData}-RefFixSorted --exclude Dups2Remove.dupvar --make-bed --out DataFixStep4_${RawData}-RefFixSortedNoDups
+			else
+				echo "Input not recognized -- specify either 'plink' or 'plink2' -- exiting"
+				echo ================================================================================
+				echo
+			fi
+		fi
 
 		cp DataFixStep4_* ${dataPath}/TEMP && cp DataFixStep4_* ${dataPath}/TargetData
 
@@ -258,7 +292,18 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 
-		${Plink2_Exec} --bfile DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex ${RawData}.fam 3 --make-bed --out DataFixStep5_${RawData}-PhaseReady
+		if [ "${UserInput1}" == "plink" ]; then
+			${Plink_Exec} --bfile DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex ${RawData}.fam --make-bed --out DataFixStep5_${RawData}-PhaseReady
+		else 
+			if [ "${UserInput1}" == "plink2" ]; then
+				echo "Continuing with plink2 /n"				
+				echo ${Plink2_Exec} --bfile DataFixStep4_${RawData}-RefFixSortedNoDups --update-sex ${RawData}.fam 3 --make-bed --out DataFixStep5_${RawData}-PhaseReady
+			else
+				echo "Input not recognized -- specify either 'plink' or 'plink2' -- exiting"
+				echo ================================================================================
+				echo
+			fi
+		fi
 
 		cp DataFixStep5_${RawData}-PhaseReady ${dataPath}/TEMP/ && mv DataFixStep* ${dataPath}/TargetData
 
