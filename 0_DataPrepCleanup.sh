@@ -118,7 +118,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 		echo
 		echo
 		# try to run original code
-		command=$(${Plink_Exec} --bfile $RawData --recode vcf --out DataFixStep1_${RawData} 2&>1) #original command
+		command=$(${Plink_Exec} --bfile $RawData --recode vcf --out DataFixStep1_${RawData} 2 &>1) #original command
 		retC1=$?
 		if [[ $retC1 -eq 0 ]]; then
 			${Plink_Exec} --bfile $RawData --recode vcf --out DataFixStep1_${RawData} #run original command if no error
@@ -128,10 +128,10 @@ if [ "${PerformFixref,,}" == "t" ]; then
 			## switch for 2.0, need pgen instead to sort for to make-bed   ## switch to export either the fixed split chr in *bgen format or recode to vcf from pgen format
 			echo
 			if [[ $command == *'Error'* ]]; then
-				${Plink2_Exec} --bfile $RawData --export bcf-4.2 --out DataFixStep1_${RawData} ##try first alternative with plink2
-			elif [[ $(${Plink2_Exec} --bfile $RawData --export bcf-4.2 --out DataFixStep1_${RawData} 2&>1) == *'Error'* ]]; then
+				${Plink2_Exec} --bfile $RawData --make-bed -out ${RawData}_chrFix && ${Plink_Exec} --bfile ${RawData}_chrFix --recode vcf --out DataFixStep1_${RawData}
+			elif [[ $(${Plink2_Exec} --bfile $RawData --export bcf-4.2 --out DataFixStep1_${RawData} 2 &>1) == *'Error'* ]]; then
 				command2 = $(${Plink2_Exec} --bfile $RawData --keep-allele-order --fa $oddysseyPath/0_DataPrepModule/RefAnnotationData/GCA_000001405.15_GRCh38_genomic.fna.gz --ref-from-fa --make-bed --out ${RawData}_chrFix &&
-					${Plink_Exec} --bfile ${RawData}_chrFix --recode vcf --out DataFixStep1_${RawData} 2&>1)
+					${Plink_Exec} --bfile ${RawData}_chrFix --recode vcf --out DataFixStep1_${RawData} 2 &>1)
 				retC2=$?
 			elif [[ $command == *'Error'* ]]; then
 				${Plink2_Exec} --bfile ${RawData} --make-pgen --sort-vars --out ${RawData}_chrSort &&
@@ -140,7 +140,7 @@ if [ "${PerformFixref,,}" == "t" ]; then
 						${Plink2_Exec} --pfile ${RawData}_chrSort --keep-allele-order --export vcf --id-delim '_' --out DataFixStep1_${RawData})
 				printf "\n\nStep 1 Done!\n"
 			else
-				echo >&2 "Error Converting $RawData Plink files into VCF format \n"
+				echo >&2 "Error Converting $RawData Plink files into VCF format."
 				exit 1
 			fi
 		fi
@@ -156,8 +156,8 @@ if [ "${PerformFixref,,}" == "t" ]; then
 			if [[ $command == *'Error'* ]]; then ## try for alternative command
 				${bcftools} index DataFixStep1_${RawData}.vcf.bgz && ${bcftools} convert -Ou DataFixStep1_${RawData}.vcf.bgz >DataFixStep1_${RawData}.bcf
 			else
-				echo 'Check .log file for error'
-
+				echo >&2 "Error Converting VCF into a BCF \n"
+				exit 1
 			fi
 		fi
 		cp DataFix* TargetData
@@ -328,31 +328,28 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 	echo
 	#        (${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove) || (${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix && ${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars ids-only suppress-first --out Dups2Remove)
 	##(
-        output=$(${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove 2>&1)
+	output=$(${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove 2>&1)
 	ret=$?
 	if [[ $ret -eq 0 ]]; then
 		${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove
 	else
 		if [[ $output == *'Error'* ]]; then
-                    awk '{if(seen[$1]++ || seen[$2]++) {print $1"_dup", $2"_dup", $3, $4, $5, $6 ; next} else if($1 == $2) {print $1"_dup", $2"_dup", $3, $4, $5, $6 ; next} {print} }' ${RawData}.fam > tmp && 
-                    mv ${RawData}.fam fam.dups &&
-                    mv tmp ${RawData}.fam &&
-                    ${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix &&
-                    ${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars --out Dups2Remove
+			awk '{if(seen[$1]++ || seen[$2]++) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} else if($1 == $2) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} {print} }' ${RawData}.fam ${RawData}.fam | sed -e 's/ /\t/g' -e 's/\t/ /1' >tmp &&
+				mv ${RawData}.fam fam.dups &&
+				mv tmp ${RawData}.fam &&
+				${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix &&
+				${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars --out Dups2Remove
 		else
 			echo 'Check .log file for error'
 		fi
 	fi
- 	######${Plink_Exec} --noweb --bfile ${RawData} --exclude
-	##uncomment plink2, no dups removal needed
+
 	#${Plink2_Exec} --bfile ${RawData} --set-all-var-ids --rm-dup --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink2_Exec} --bfile ${RawData} --make-pgen --sort-vars --out ${RawData}_chrSort && ${Plink2_Exec} --pfile ${RawData}_chrSort --rm-dup force-first  --make-bed --out ${RawData}_chrFix)
 	printf "\n\nRemoving Positional and Allelic Duplicates \n"
 	echo ----------------------------------------------
 	echo
 	echo
 
-	### ${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.list ---bmerge ${RawData} --merge-equal-pos --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink_Exec} --bfile ${RawData}_chrFix --exclude Dups2Remove.list --make-bed ---bmerge ${RawData}_chrFix --m$
-        
 	output2=$(${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.dupvar --make-bed --out DataFixStep5_${RawData}-PhaseReady 2>&1)
 	ret2=$?
 	if [[ $ret2 -eq 0 ]]; then
@@ -364,6 +361,8 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 			echo 'Check .log file for error'
 		fi
 	fi
+
+	### ${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.list ---bmerge ${RawData} --merge-equal-pos --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink_Exec} --bfile ${RawData}_chrFix --exclude Dups2Remove.list --make-bed ---bmerge ${RawData}_chrFix --m$
 
 	cp * TEMP
 	mv Dup* ${dataPath}/TEMP && mv *list ${dataPath}/TEMP
