@@ -326,25 +326,26 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 	echo ----------------------------------------------
 	echo
 	echo
-	#        (${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove) || (${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix && ${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars ids-only suppress-first --out Dups2Remove)
-	##(
-	output=$(${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove 2>&1)
-	ret=$?
-	if [[ $ret -eq 0 ]]; then
+	echo "Would you like to continue with plink or plink2?"
+	echo "(y/n)?"
+	echo --------------------------------------------------
+	read UserInput1
+	echo
+	echo
+
+	if [ "${UserInput1}" == "plink" ]; then
 		${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove
 	else
-		if [[ $output == *'Error'* ]]; then
-			awk '{if(seen[$1]++ || seen[$2]++) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} else if($1 == $2) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} {print} }' ${RawData}.fam ${RawData}.fam | sed -e 's/ /\t/g' -e 's/\t/ /1' >tmp &&
-				mv ${RawData}.fam fam.dups &&
-				mv tmp ${RawData}.fam &&
-				${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix &&
-				${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars --out Dups2Remove
+		if [ "${UserInput1}" == "plink2" ]; then
+			echo "Continuing with plink2 /n"
+			echo =========================================================
+			echo ${Plink2_Exec} --bfile ${RawData} --set-all-var-ids --rm-dup --make-bed --out DataFixStep5_${RawData}-PhaseReady
 		else
-			echo 'Check .log file for error'
+			echo "Input not recognized -- specify either 'plink' or 'plink2' -- exiting"
+			echo ================================================================================
+			echo
 		fi
 	fi
-
-	#${Plink2_Exec} --bfile ${RawData} --set-all-var-ids --rm-dup --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink2_Exec} --bfile ${RawData} --make-pgen --sort-vars --out ${RawData}_chrSort && ${Plink2_Exec} --pfile ${RawData}_chrSort --rm-dup force-first  --make-bed --out ${RawData}_chrFix)
 	printf "\n\nRemoving Positional and Allelic Duplicates \n"
 	echo ----------------------------------------------
 	echo
@@ -361,8 +362,6 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 			echo 'Check .log file for error'
 		fi
 	fi
-
-	### ${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.list ---bmerge ${RawData} --merge-equal-pos --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink_Exec} --bfile ${RawData}_chrFix --exclude Dups2Remove.list --make-bed ---bmerge ${RawData}_chrFix --m$
 
 	cp * TEMP
 	mv Dup* ${dataPath}/TEMP && mv *list ${dataPath}/TEMP
