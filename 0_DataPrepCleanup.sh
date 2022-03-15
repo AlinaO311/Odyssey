@@ -53,24 +53,24 @@ RawData="$(ls *.bim | awk -F/ '{print $NF}' | awk 'BEGIN{FS=OFS="."} NF--')"
 #Match dirname to .bim filename
 
 sampleBase="$(basename $PWD)"
-if [ "${sampleBase}" = "$RawData" ]; then
-	echo "Directory name matches sample names."
+if [[ "${sampleBase}" = "$RawData" ]]; then
+    echo "Directory name matches sample names."
 else
-	echo "Directory name does not match sample names"
-	while true; do
-		read -p "Rename directory to match .bim name?" yn
-		case $yn in
-		[Yy]*)
-			mv ${PWD} "$(dirname $PWD)"/"$RawData" && echo $PWD && echo "Change dataPath"
-			exit
-			;;
-		[Nn]*)
-			echo "Exiting"
-			exit
-			;;
-		*) echo "Please answer yes or no." ;;
-		esac
-	done
+    echo "Directory name does not match sample names"
+    while true; do
+        read -p "Rename directory to match .bim name?" yn
+	case $yn in
+	[Yy]*)
+	    mv ${PWD} "$(dirname $PWD)"/"$RawData" && echo $PWD && echo "Change dataPath"
+	    exit
+	    ;;
+	[Nn]*)
+	    echo "Exiting"
+	    exit
+	    ;;
+	*) echo "Please answer yes or no." ;;
+	esac
+    done
 fi
 
 # Match filenames
@@ -326,26 +326,25 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 	echo ----------------------------------------------
 	echo
 	echo
-	echo "Would you like to continue with plink or plink2?"
-	echo "(y/n)?"
-	echo --------------------------------------------------
-	read UserInput1
-	echo
-	echo
-
-	if [ "${UserInput1}" == "plink" ]; then
+	#        (${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove) || (${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix && ${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars ids-only suppress-first --out Dups2Remove)
+	##(
+	output=$(${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove 2>&1)
+	ret=$?
+	if [[ $ret -eq 0 ]]; then
 		${Plink_Exec} --bfile ${RawData} --list-duplicate-vars ids-only suppress-first --out Dups2Remove
 	else
-		if [ "${UserInput1}" == "plink2" ]; then
-			echo "Continuing with plink2 /n"
-			echo =========================================================
-			echo ${Plink2_Exec} --bfile ${RawData} --set-all-var-ids --rm-dup --make-bed --out DataFixStep5_${RawData}-PhaseReady
+		if [[ $output == *'Error'* ]]; then
+			awk '{if(seen[$1]++ || seen[$2]++) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} else if($1 == $2) {print $1a[$1]++, $2a[$2]++, $3, $4, $5, $6 ; next} {print} }' ${RawData}.fam ${RawData}.fam | sed -e 's/ /    /g' -e 's/    / /1' >tmp &&
+			mv ${RawData}.fam fam.dups &&
+			mv tmp ${RawData}.fam &&
+			${Plink_Exec} --bfile ${RawData} --make-bed -out ${RawData}_chrFix &&
+			${Plink_Exec} --bfile ${RawData}_chrFix --list-duplicate-vars --out Dups2Remove
 		else
-			echo "Input not recognized -- specify either 'plink' or 'plink2' -- exiting"
-			echo ================================================================================
-			echo
+			echo 'Check .log file for error'
 		fi
 	fi
+
+	#${Plink2_Exec} --bfile ${RawData} --set-all-var-ids --rm-dup --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink2_Exec} --bfile ${RawData} --make-pgen --sort-vars --out ${RawData}_chrSort && ${Plink2_Exec} --pfile ${RawData}_chrSort --rm-dup force-first  --make-bed --out ${RawData}_chrFix)
 	printf "\n\nRemoving Positional and Allelic Duplicates \n"
 	echo ----------------------------------------------
 	echo
@@ -362,6 +361,8 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 			echo 'Check .log file for error'
 		fi
 	fi
+
+	### ${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.list ---bmerge ${RawData} --merge-equal-pos --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink_Exec} --bfile ${RawData}_chrFix --exclude Dups2Remove.list --make-bed ---bmerge ${RawData}_chrFix --m$
 
 	cp * TEMP
 	mv Dup* ${dataPath}/TEMP && mv *list ${dataPath}/TEMP
