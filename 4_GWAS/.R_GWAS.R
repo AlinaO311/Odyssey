@@ -9,7 +9,7 @@
 	commandArgs()-> args
 	args[6]->WorkingDir
 	args[7]->VCF2PGEN
-	args[8]->Sex_Input
+	args[8]->Sex_Input_Path
 	args[9]->GWAS_Memory
 	args[10]->GWAS_Walltime
 	args[11]->GWASSubDir
@@ -18,10 +18,15 @@
 	args[14]->GWAS_Threads
 	args[15]->GWASRunName
 	args[16]->GWASDatasetName
-	args[17]->Pheno_File
-	args[18]->VCF_Input
-	
-	
+	args[17]->Pheno_File_Path
+	args[18]->VCF_Input_Path
+
+# Set Pheno, VCF and Sex file paths as variables
+
+        basename(VCF_Input_Path) -> VCF_Input
+        basename(Sex_Input_Path) -> Sex_Input
+        basename(Pheno_File_Path) -> Pheno_File	
+
 	'plink2'->plink
 	
 	# Need to make Plink Memory request just a bit smaller than the HPC/Desktop Memory Total
@@ -52,7 +57,12 @@ if (VCF2PGEN=="T" || VCF2PGEN=="t")
 		cat("\n\nConverting VCF to Plink Dosage PGEN:\n")
 		cat("============================================\n")
 		
-		system(paste0(plink, " --vcf ", VCF_Input, " --id-delim _ --update-sex ", Sex_Input, " col-num=5 --memory ",ActualGWAS_Memory, "000 --make-pgen --out ./4_GWAS/Datasets/", GWASDatasetName))
+                setwd(dirname(VCF_Input_Path))
+                               
+		system(paste0(plink, " --vcf ", VCF_Input, " --id-delim _ --update-sex ", Sex_Input, " col-num=5 --memory ",ActualGWAS_Memory, "000 --make-pgen --out ", GWASDatasetName))
+                system(paste0("cp ", GWASDatasetName, "* ", GWASSubDir))
+                
+                setwd(WorkingDir)
 
 		#plink --vcf ${VCF_Input} --id-delim _ --update-sex ${Sex_Input} col-num=5 --memory ActualGWAS_Memory000 require --make-pgen --out ./4_GWAS/Datasets/${GWASDatasetName}
 		
@@ -78,19 +88,19 @@ if (VCF2PGEN=="T" || VCF2PGEN=="t")
 	cat("================================\n")
 	
 	# Check PGEN file is present
-		PGEN_Check <- file_test("-f", paste0("./4_GWAS/Datasets/", GWASDatasetName, ".pgen"))
+		PGEN_Check <- file_test("-f", paste0("./GWAS/Datasets/", GWASDatasetName, ".pgen"))
 		cat(paste("\nChecking for PGEN existence in Dataset Folder:", PGEN_Check, "\n"))
 		cat("--------------------------------------------------\n")
-		paste0("./4_GWAS/Datasets/", GWASDatasetName, ".pgen")
+		paste0("./GWAS/Datasets/", GWASDatasetName, ".pgen")
 	
 	# Check PHENO file is present
-		Pheno_Check <-file_test("-f", paste0("./4_GWAS/Phenotype/", Pheno_File))
+		Pheno_Check <-file_test("-f", paste0("./GWAS/Phenotype/", Pheno_File))
 		cat(paste("\n\nChecking for Pheno file existence in Phenotype Folder:", Pheno_Check, "\n"))
 		cat("--------------------------------------------------\n")
-		paste0("./4_GWAS/Phenotype/", Pheno_File)
+		paste0("./GWAS/Phenotype/", Pheno_File)
 	
 	# Check Sample Sex file is present
-		Sex_Check <-file_test("-f", paste0(Sex_Input))
+		Sex_Check <-file_test("-f", paste0("./GWAS/Phenotype/",Sex_Input))
 		cat(paste("\n\nChecking for Sample-Sex file existence in Phenotype Folder:", Sex_Check, "\n"))
 		cat("--------------------------------------------------\n")
 		paste0(Sex_Input)
@@ -107,13 +117,14 @@ if (PGEN_Check == "TRUE" && Pheno_Check == "TRUE" && Sex_Check == "TRUE")
 	# ------------------
 	
 	# Set PGEN path as variable
-		PGEN_FILE_PATH <- paste0("./4_GWAS/Datasets/", GWASDatasetName)
-	
+		PGEN_FILE_PATH <- paste0("./GWAS/Datasets/", GWASDatasetName)
+                basename(PGEN_FILE_PATH) -> PGEN_FILE
+
 	# Set Pheno path as variable
-		PHENO_FILE_PATH <- paste0("./4_GWAS/Phenotype/", Pheno_File)
+                
 		
 	# Run GWAS using all the variables specified in Settings.conf
-		system(paste0(plink, " --pfile ", PGEN_FILE_PATH, " --pheno ",PHENO_FILE_PATH, " --pheno-name ", GWASPhenoName, " ", PLINK_OPTIONS, " --threads ", GWAS_Threads, " --memory ", ActualGWAS_Memory, "000 --out ", GWASSubDir, "/", GWASRunName))
+		system(paste0(plink, " --pfile ", PGEN_FILE, " --pheno ", Pheno_File , " --pheno-name ", GWASPhenoName, " ", PLINK_OPTIONS, " --threads ", GWAS_Threads, " --memory ", ActualGWAS_Memory, "000 --out ", GWASRunName))
 	cat("\n=================================================\n\n\n")
 	
 # ========================================
@@ -238,7 +249,7 @@ cat("=================================================\n")
 		cat('\nCopying Results to 5_QuickResults Folder\n')
 		cat('-------------------------------------------\n\n')
 		
-		system(paste0('mkdir -p ', WorkingDir, '5_QuickResults/', GWASDatasetName, '/GWAS_Results/', GWASRunName, '/'))
+		system(paste0('mkdir ', WorkingDir, '5_QuickResults/', GWASDatasetName, '/GWAS_Results/', GWASRunName, '/'))
 		system(paste0('cp -R ', GWASSubDir, '/', ' ', WorkingDir, '5_QuickResults/', GWASDatasetName, '/GWAS_Results/', GWASRunName, '/'))
 
 		cat('\nFinished with Data Analysis -- Visualization!\n\n')
