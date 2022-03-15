@@ -43,10 +43,10 @@ fi
 echo
 echo Changing to Working Directory
 echo ----------------------------------------------
-echo ${WorkingDir}
+echo $PWD
 echo
 echo
-cd ${WorkingDir}
+cd $dataPath
 
 # ======================================================================================================
 # ======================================================================================================
@@ -71,7 +71,7 @@ if [ "${UseShapeit,,}" == "t" ]; then
 		echo It may take a while to scan all the .out files
 		echo ==============================================
 		echo
-		find ${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
+		find ./${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V
 		echo
 		echo ==============================================
 		echo
@@ -92,7 +92,7 @@ if [ "${UseShapeit,,}" == "t" ]; then
 			echo "Outputting more details on failed file/s..."
 			echo ===========================================
 			echo
-			find {BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
+			find ./${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -ri 'Killed\|Aborted\|segmentation\|error' | sort -V
 			echo
 			echo ===========================================
 
@@ -157,13 +157,13 @@ if [ "${UseShapeit,,}" == "t" ]; then
 				# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 				# 3,4) Sorts the .out files and subs .out for .sh to get the script
 				# 5) Within .sh should be a manual execution command that starts with '# qsub', grep finds the line and trims the off the '# ' to get the qsub command and saves it to ReSubmitPhaseJobs.txt
-				find {BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' >ReSubmitPhaseJobs.txt
+				find ${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' >ReSubmitPhaseJobs.txt
 
 				# Manually read in scripts that need to be re-run (comment out previous command if you want to use this manual override
-				#cat {BaseName}_Phasing/Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
+				#cat ${BaseName}_Phasing/Scripts2Resubmit.txt | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'qsub' | sed 's/.*# //' > ReSubmitPhaseJobs.txt
 
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-				find {BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+				find ${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 
 				# Read the file that contains the scripts that need to be re-submitted and submit then via Bash to the HPS queue
 				cat ReSubmitPhaseJobs.txt | bash
@@ -185,10 +185,10 @@ if [ "${UseShapeit,,}" == "t" ]; then
 				# 2) find .out files that contain the words 'Killed', 'Aborted', 'segmentation', or 'error'
 				# 3,4) Sorts the .out files and subs .out for .sh to get the script
 				# 5) Within .sh should be a manual execution command that starts with 'time ', grep finds the line and saves it to ReSubmitPhaseJobs.txt
-				find {BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' >ReSubmitPhaseJobs.txt
+				find ${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | sed 's/.out/.sh/g' | xargs grep -r 'time ' >ReSubmitPhaseJobs.txt
 
 				# Remove the errored .out file (otherwise the new .out will be appended to the old and the error will never be reported as fixed)
-				find {BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
+				find ${BaseName}_Phasing/Scripts2Shapeit -maxdepth 1 -type f -print | xargs grep -rli 'Killed\|Aborted\|segmentation\|error' | sort -V | xargs rm -f
 
 				# Read the file that contains the scripts that need to be re-submitted and submit then via sh to the Linux workstation
 				cat ReSubmitPhaseJobs.txt | bash
@@ -267,8 +267,8 @@ echo ========================================
 printf 'Convert Chr${chr} Phased .haps to .vcf\n'
 echo ========================================
 printf '\n\n'
-${Shapeit2_Exec} -convert --input-haps {BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased --output-vcf {BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz --output-log {BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.log.temp
-# Minimac Command{BaseName}_Phasing
+${Shapeit2_Exec} -convert --input-haps ${BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased --output-vcf ${BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz --output-log ${BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.log.temp
+# Minimac Command ${BaseName}_Phasing
 printf '\n\n'	
 echo ========================================
 printf 'Impute Chr${chr} Using Minimac\n'
@@ -278,7 +278,7 @@ ${Minimac4_Exec} \
 --cpus $ImputeThreads \
 --allTypedSites --minRatio 0.00001 \
 --refHaps ./Reference/${MiniRef} \
---haps {BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz \
+--haps ${BaseName}_Phasing/Ody3_${BaseName}_Chr${chr}_Phased.vcf.gz \
 --prefix ./${BaseName}_Imputation/RawImputation/Ody4_${BaseName}_Chr${chr}" >./${BaseName}_Imputation/Scripts2Impute/Chr${chr}_${BaseName}_I.sh
 
 				# Toggle that will turn script submission on/off
@@ -351,7 +351,7 @@ cd ${WorkingDir}
 	printf 'Convert ChrX Phased .haps to .vcf\n'
 	echo ========================================
 	printf '\n\n'
-	${Shapeit2_Exec} -convert --input-haps {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased --output-vcf {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp --output-log {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.log.temp
+	${Shapeit2_Exec} -convert --input-haps ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased --output-vcf ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp --output-log ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.log.temp
 # Format the VCF.gz so that Chr23 is XChromIdentifier
 	printf '\n\n'	
 	echo ========================================
@@ -360,18 +360,18 @@ cd ${WorkingDir}
 	printf '\n\n'
 	
 	# Get the header # rows from the VCF
-		grep -w \"#\" {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp > {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
+		grep -w \"#\" ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp > ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
 	
 	# For some readon the column header row isn't taken so specifically ask for it	
-		grep -w \"CHROM\" {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> .{BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
+		grep -w \"CHROM\" ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> .${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
 	
 	#Get the rest of the VCF except this time replace 23 with 'X'
-		awk '/^[^#]/ { first = \$1; \$1 = \"X\"; print \$0}' OFS='\t' {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
+		awk '/^[^#]/ { first = \$1; \$1 = \"X\"; print \$0}' OFS='\t' ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp >> ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
 		
 	# Remove the Temp file
-		rm .{BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp
+		rm .${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.temp
 	# Gzip the output 
-		${gzip_Exec} {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
+		${gzip_Exec} ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf
 # Minimac Command
 	printf '\n\n'	
 	echo ========================================
@@ -383,7 +383,7 @@ cd ${WorkingDir}
 	--cpus $ImputeThreads \
 	--allTypedSites --minRatio 0.00001 \
 	--refHaps ./Reference/${XMiniRef} \
-	--haps {BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.gz \
+	--haps ${BaseName}_Phasing/Ody3_${BaseName}_Chr23_Phased.vcf.gz \
 	--prefix ${BaseName}_Imputation/RawImputation/Ody4_${BaseName}_Chr23" >${BaseName}_Imputation/Scripts2Impute/Chr23_${BaseName}_I.sh
 
 			# Toggle that will turn script submission on/off
