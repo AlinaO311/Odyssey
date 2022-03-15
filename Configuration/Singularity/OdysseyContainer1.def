@@ -29,6 +29,9 @@ From: ubuntu:latest
 	apt -y install gcc
 	apt -y install gnustep-base-runtime
 	apt -y install locales
+        DEBIAN_FRONTEND=noninteractive apt -y install keyboard-configuration
+
+##apt install keyboard-configuration
 	
 	
 # Export language preferences
@@ -47,21 +50,22 @@ From: ubuntu:latest
 	apt -y install libx11-dev
 	apt -y install libcairo2-dev
 	apt -y install libmagick++-dev
-
+  
 	
 
 # Install R itself
 	
 	apt -y install r-base
 	apt -y install libopenblas-base
-
+        apt -y install r-cran-rcppeigen
 
 # Install R Packages
 
 	#Rscript -e "install.packages(c('rgl', 'gdtools'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
 	#Rscript -e "install.packages('openssl', dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
 	
-Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','scales','ggplot2','car', 'MASS','gridExtra', 'rcompanion'), dependencies=T, repos='https://cran.cnr.berkeley.edu/')"
+Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','scales','ggplot2','car', 'MASS','gridExtra', 'rcompanion'), dependencies=T, repos='https://cran.rstudio.com/')"
+#repos='https://cran.cnr.berkeley.edu/')"
 	
 		
 	
@@ -74,7 +78,7 @@ Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','
 # Install Plink2 (to /usr/local/bin/)
 	
 	# Download from site
-	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/plink2_linux_avx2_20190402.zip
+	wget --output-document=/usr/local/bin/Plink2.zip http://s3.amazonaws.com/plink2-assets/alpha2/plink2_linux_avx2.zip
 	
 	# Unpack	
 	unzip /usr/local/bin/Plink2.zip -d /usr/local/bin/
@@ -126,7 +130,7 @@ Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','
 	# Download from site
 	wget --output-document=/usr/local/bin/MinicondaSetup.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 	
-	# Congigure
+	# Configure
 	bash /usr/local/bin/MinicondaSetup.sh -b -p /usr/local/bin/miniconda
 	
 	# Remove the installation Clutter
@@ -149,9 +153,11 @@ Rscript -e "install.packages(c('data.table','tidyverse','qqman', 'manhattanly','
 
 	conda update conda	
 	conda install -y htslib
-	conda install -y bcftools
-	conda install -y plink
-	conda install -y shapeit
+	#conda install -y bcftools
+	#conda install -c bioconda samtools openssl=1.0
+        conda install -c bioconda samtools bcftools
+        conda install -y plink
+	conda install -c dranew shapeit
 	conda install -y impute2
 		#conda install -y R
 
