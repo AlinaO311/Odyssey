@@ -81,7 +81,7 @@ oddysseyPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	echo
 
 # Move it
-	mv TargetData/* ${BaseName}_Imputation
+	mv TargetData/ ${BaseName}_Imputation
         
 	sleep 2
 
