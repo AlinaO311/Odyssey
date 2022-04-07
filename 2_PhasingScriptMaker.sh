@@ -95,8 +95,8 @@ Imputation Program Requested From Settings.conf\n "
 				# Ref Build Updated Aug 3 2015
 
 				printf "\n\nRetrieving 1K Genome Phase 3 Ref Panel and hg19 Genetic Map from Impute2 Website \n-------------------------------------------------------------------------------\n\n\n"
-				wget -nc --directory-prefix=./Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz
-				wget -nc --directory-prefix=./Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz
+				wget -nc --directory-prefix=./Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3.tgz --no-check-certificate
+				wget -nc --directory-prefix=./Reference/ https://mathgen.stats.ox.ac.uk/impute/1000GP_Phase3_chrX.tgz --no-check-certificate
 
 				#Unzip the packaged ref panel
 				printf "\n\nUnpackaging Ref Panel \n--------------------------\n\n"
