@@ -220,6 +220,63 @@ if [ "${UseShapeit,,}" == "t" ]; then
 	fi
 fi
 
+# ======================================================================================================
+# ======================================================================================================
+#                                    Imputation Script Creation
+# ======================================================================================================
+# ======================================================================================================
+
+
+# Creates the Impute directory and also Lustre Stripes it to accomidate for large file folders (prevents the file folder from completely filling up a drive)
+	
+	printf "\nCreating Imputation Project Folder within Impute Directory \n\n\n"
+		mkdir ./${BaseName}_Imputation
+	
+	# Use Lustre Stripping?
+		if [ "${LustreStrip,,}" == "t" ]; then
+			lfs setstripe -c 5 ./${BaseName}_Imputation/
+		fi
+
+	mkdir ./${BaseName}_Imputation/Scripts2Impute
+	mkdir ./${BaseName}_Imputation/RawImputation
+
+
+# ---------------------------------------------
+# Formatting the Fam file to an Imputation Sample File
+# ---------------------------------------------
+
+
+	# LEGACY Format Shapeit Sample File for Use with Impute	
+
+	#Get a single sample file from the Phase folder
+	#SHAPEIT_SAMPLE_FILE="$(ls ./${BaseName}_Phasing/*.sample | head -1)"
+	
+	#echo
+	#echo Modifying Sample File: 
+	#echo $SHAPEIT_SAMPLE_FILE 
+	#echo to be used with Impute4
+	#echo -----------------------------------
+	#echo
+	#awk 'BEGIN{FS=" "}{print $1,$2,$3,$6}' OFS=' ' $SHAPEIT_SAMPLE_FILE > ./${BaseName}_Impute/${BaseName}.sample
+
+	#Get a QC2 .fam file from the Target folder and format it for Minimac
+		PLINK_FAM_FILE="$(ls ./${BaseName}_Imputation/TargetData/*QC2.fam | head -1)"
+		
+		echo
+		echo Modifying Fam File: 
+		echo $PLINK_FAM_FILE
+		printf "  ...into a Sample File\n"
+		echo -----------------------------------
+		echo
+			# Cutnecessary Columns
+				awk 'BEGIN{FS=" "}{print $1,$2,$4,$5}' OFS=' ' $PLINK_FAM_FILE > ./${BaseName}_Imputation/${BaseName}.sampleTEMP
+
+			# Format the Plink QC2 .fam file for Imputation via Impute
+				echo -e "ID_1 ID_2 missing sex\n0 0 0 D" | cat - ./${BaseName}_Imputation/${BaseName}.sampleTEMP > ./${BaseName}_Imputation/${BaseName}.sample
+			
+			# Remove the Temp File
+				rm ./${BaseName}_Imputation/${BaseName}.sampleTEMP
+
 ## --------------------------------------------------------------------------------------
 ## ===========================================
 ##          Minimac Imputation
