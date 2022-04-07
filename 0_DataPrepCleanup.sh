@@ -364,9 +364,8 @@ elif [ "${PerformFixref,,}" == "f" ]; then
 
 	### ${Plink_Exec} --bfile ${RawData} --exclude Dups2Remove.list ---bmerge ${RawData} --merge-equal-pos --make-bed --out DataFixStep5_${RawData}-PhaseReady || (${Plink_Exec} --bfile ${RawData}_chrFix --exclude Dups2Remove.list --make-bed ---bmerge ${RawData}_chrFix --m$
 
-	cp * TEMP
-	mv Dup* ${dataPath}/TEMP && mv *list ${dataPath}/TEMP
-	cp DataFixStep5* TargetData
+	cp * TEMP 
+	mv Dup* ${dataPath}/TEMP && cp DataFixStep5* TargetData
 	rm -f -- *chrFix* && rm -f -- *recode*
 
 	if [ "${SaveDataPrepIntermeds,,}" == "f" ]; then
